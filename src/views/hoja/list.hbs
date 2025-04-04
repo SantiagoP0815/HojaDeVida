@@ -1,0 +1,24 @@
+<div class="container target">
+    <div class="target row">
+        {{#each personas}}
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <a target="_blank">
+                        <h3 class="">
+                            {{primer_apellido}} {{segundo_apellido}}
+                        </h3>
+                        <h3 class="">
+                            {{nombres}}
+                        </h3>
+                    </a>
+                    <p class="m-2">{{numero_documento}}</p>
+                    <a class="btn btn-secondary" href="/hoja/view/{{unique_identifier}}">
+                        Ver
+                    </a>
+                </div>
+            </div>
+        </div>
+        {{/each}}
+    </div>
+</div>

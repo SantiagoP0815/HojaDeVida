@@ -1,0 +1,38 @@
+<nav class="navbar fixed-top navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand text-white" href="/">
+      <i class="bi bi-house-fill"></i> Hoja de vida
+    </a>
+    <div class="d-flex">
+      <ul class="navbar-nav d-flex flex-row">
+        {{#if user}}
+        {{#if (eq user.admin "SI")}}
+        <li class="nav-item mx-2">
+          <a class="nav-link text-white" href="/hoja/list">Lista</a>
+        </li>
+        <li class="nav-item mx-2">
+          <a class="nav-link text-white" href="/hoja/add">Perfil</a>
+        </li>
+        <li class="nav-item mx-2">
+          <a class="nav-link text-white" href="/logout">Salir</a>
+        </li>
+        {{else}}
+        <li class="nav-item mx-2">
+          <a class="nav-link text-white" href="/hoja/add">Perfil</a>
+        </li>
+        <li class="nav-item mx-2">
+          <a class="nav-link text-white" href="/logout">Salir</a>
+        </li>
+        {{/if}}
+        {{else}}
+        <li class="nav-item mx-2">
+          <a class="nav-link text-white" href="/signin">Inicia Sesión</a>
+        </li>
+        <li class="nav-item mx-2">
+          <a class="nav-link text-white" href="/signup">Registrar</a>
+        </li>
+        {{/if}}
+      </ul>
+    </div>
+  </div>
+</nav>

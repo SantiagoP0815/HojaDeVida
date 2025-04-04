@@ -1,0 +1,20 @@
+<main class="index">
+    <header class="masthead d-flex">
+        <div class="container text-center my-auto rounded-pill p-5 bg-custom">
+            <h1 class="mb-1 text-white">!!CREA TU HOJA DE VIDA!!</h1>
+            <h3 class="mb-5 text-light">
+                <em>con este formato la puedes crear fácilmente</em>
+            </h3>
+            {{#if user}}
+            <a class="btn btn-success btn-lg" href="/hoja/add">
+                CREAR
+            </a>
+            {{else}}
+            <a class="btn btn-primary btn-lg" href="/signin">
+                Inicia sesión
+            </a>
+            {{/if}}
+        </div>
+        <div class="overlay"></div>
+    </header>
+</main>

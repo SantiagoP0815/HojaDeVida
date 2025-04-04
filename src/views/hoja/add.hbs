@@ -1,0 +1,1326 @@
+<div class="demo-page fixed-top pt-4">
+  <div class="demo-page-navigation">
+    <nav>
+      <ul>
+        <li>
+          <a href="#datos" class="selected">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" class="feather feather-tool">
+              <path
+                d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+            </svg>
+            Datos personales</a>
+        </li>
+        <li>
+          <a href="#formacion" class="selected">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" class="feather feather-layers">
+              <polygon points="12 2 2 7 12 12 22 7 12 2" />
+              <polyline points="2 17 12 22 22 17" />
+              <polyline points="2 12 12 17 22 12" />
+            </svg>
+            Formación académica</a>
+        </li>
+        <li>
+          <a href="#experiencia" class="selected">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" class="feather feather-align-justify">
+              <line x1="21" y1="10" x2="3" y2="10" />
+              <line x1="21" y1="6" x2="3" y2="6" />
+              <line x1="21" y1="14" x2="3" y2="14" />
+              <line x1="21" y1="18" x2="3" y2="18" />
+            </svg>
+            Experiencia Laboral</a>
+        </li>
+        <li>
+          <a href="#tiempo" class="selected">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-square">
+              <polyline points="9 11 12 14 22 4" />
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+            </svg>
+            Tiempo Total De Experiencia</a>
+        </li>
+      </ul>
+    </nav>
+    <div class="pt-4">
+      <button type="button" id="enviarTodos" class="btn btn-success w-100 " onclick="enviarFormulario()">GUARDAR
+        CAMBIOS</button>
+    </div>
+    <div class="pt-4">
+      <button type="button" id="enviarTodos" class="btn btn-primary w-100 " onclick="descargarPDF()">DESCARGAR
+        PDF</button>
+    </div>
+    <div class="pt-4">
+      <button type="button" id="enviarTodos" class="btn btn-secondary w-100"
+        onclick="window.open('/hoja/view/{{user.unique_identifier}}', '_blank')">ENLACE PARA COMPARTIR</button>
+    </div>
+  </div>
+  <main class="demo-page-content">
+    <form id="datos-form" action="/hoja/insertar-datos" method="POST" enctype="multipart/form-data">
+      <section>
+        <div class="href-target" id="datos"></div>
+        <h1>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" class="feather feather-tool">
+            <path
+              d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+          </svg>
+          DATOS PERSONALES
+        </h1>
+        <div class="nice-form-group">
+          <label>NOMBRES</label>
+          <input type="text" placeholder="Nombres" value="{{user.nombres}}" name="nombres" id="nombres" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>PRIMER APELLIDO</label>
+          <input type="text" value="{{user.primer_apellido}}" placeholder="Primer apellido" name="primer_apellido"
+            id="primer_apellido" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>SEGUNDO APELLIDO </label>
+          <small>(o de casada)</small>
+          <input type="text" value="{{user.segundo_apellido}}" placeholder="Segundo apellido" name="segundo_apellido"
+            id="segundo_apellido" />
+        </div>
+
+        <fieldset class="nice-form-group">
+          <legend>TIPO DE DOCUMENTO DE IDENTIFICACIÓN</legend>
+          <div class="nice-form-group">
+            <input type="radio" name="tipo_documento" id="C.C" value="C.C" {{#if (eq user.tipo_documento "C.C" )}}
+              checked {{/if}} />
+            <label for="C.C">C.C</label>
+          </div>
+          <div class="nice-form-group">
+            <input type="radio" name="tipo_documento" id="C.E" value="C.E" {{#if (eq user.tipo_documento "C.E" )}}
+              checked {{/if}} />
+            <label for="C.E">C.E</label>
+          </div>
+          <div class="nice-form-group">
+            <input type="radio" name="tipo_documento" id="PAS" value="PAS" {{#if (eq user.tipo_documento "PAS" )}}
+              checked {{/if}} />
+            <label for="PAS">PAS</label>
+          </div>
+        </fieldset>
+
+        <div class="nice-form-group">
+          <label>NÚMERO DE DOCUMENTO DE IDENTIFICACIÓN</label>
+          <input type="tel" placeholder="Número de documento de identificación" value="{{user.numero_documento}}"
+            name="numero_documento" id="numero_documento" />
+        </div>
+
+        <fieldset class="nice-form-group">
+          <legend>SEXO</legend>
+          <div class="nice-form-group">
+            <input type="radio" name="sexo" id="masculino" value="M" {{#if (eq user.sexo "M" )}}checked{{/if}} />
+            <label for="masculino">Masculino</label>
+          </div>
+          <div class="nice-form-group">
+            <input type="radio" name="sexo" id="femenino" value="F" {{#if (eq user.sexo "F" )}}checked{{/if}} />
+            <label for="femenino">Femenino</label>
+          </div>
+        </fieldset>
+
+
+        <fieldset class="nice-form-group">
+          <legend>NACIONALIDAD</legend>
+          <div class="nice-form-group">
+            <input type="radio" name="nacionalidad" id="colombiano" value="COLOMBIANO" {{#if (eq
+              user.nacionalidad "COLOMBIANO" )}}checked{{/if}} />
+            <label for="colombiano">Colombiano</label>
+          </div>
+          <div class="nice-form-group">
+            <input type="radio" name="nacionalidad" id="extranjero" value="EXTRANJERO" {{#if (eq
+              user.nacionalidad "EXTRANJERO" )}}checked{{/if}} />
+            <label for="extranjero">Extranjero</label>
+          </div>
+        </fieldset>
+
+        <div class="nice-form-group">
+          <label>PAÍS DE NACIONALIDAD</label>
+          <input type="text" name="pais" value="{{user.pais}}" placeholder="País" id="pais" />
+        </div>
+
+        {{#if user.nombre_original_archivo }}
+        <div class="nice-form-group">
+          <label>DOCUMENTO DE IDENTIFICACIÓN ESCANEADO</label>
+          <input type="file" name="documento_id" id="documento_id" />
+          <div id="file-info" style="margin-top: 10px; font-size: 0.9em; color: #555;">
+            Archivo en la base de datos:
+            <a target="_blank" style="color: #0011ff;">
+              {{ user.nombre_original_archivo }}
+            </a>
+          </div>
+        </div>
+        {{else}}
+        <div class="nice-form-group">
+          <label>DOCUMENTO DE IDENTIFICACIÓN ESCANEADO</label>
+          <input type="file" name="documento_id" id="documento_id" required />
+          <div id="file-info" style="margin-top: 10px; font-size: 0.9em; color: #555;">
+            No hay ningún archivo en la base de datos
+          </div>
+        </div>
+        {{/if}}
+
+        <fieldset class="nice-form-group">
+          <legend>TIPO DE LIBRETA MILITAR</legend>
+          <div class="nice-form-group">
+            <input type="radio" name="tipo_libreta_militar" id="primera clase" value="PRIMERA CLASE" {{#if (eq
+              user.tipo_libreta_militar "PRIMERA CLASE" )}}checked{{/if}} />
+            <label for="primera clase">Primera clase</label>
+          </div>
+          <div class="nice-form-group">
+            <input type="radio" name="tipo_libreta_militar" id="segunda clase" value="SEGUNDA CLASE" {{#if (eq
+              user.tipo_libreta_militar "SEGUNDA CLASE" )}}checked{{/if}} />
+            <label for="segunda clase">Segunda clase</label>
+          </div>
+        </fieldset>
+
+        <div class="nice-form-group">
+          <label>NÚMERO DE LIBRETA MILITAR</label>
+          <input type="tel" placeholder="Número de libreta militar" value="{{user.numero_libreta_militar}}"
+            name="numero_libreta_militar" id="numero_libreta_militar" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>D.M DE LIBRETA MILITAR</label>
+          <input type="tel" placeholder="D.M de libreta militar" value="{{user.dm_libreta_militar}}"
+            name="dm_libreta_militar" id="dm_libreta_militar" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>FECHA DE NACIMIENTO</label>
+          <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" value="{{user.fecha_nacimiento}}" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>PAÍS DE NACIMIENTO</label>
+          <input type="text" name="pais_nacimiento" value="{{user.pais_nacimiento}}" placeholder="País de nacimiento"
+            id="pais_nacimiento" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>DEPARTAMENTO DE NACIMIENTO</label>
+          <input type="text" name="departamento_nacimiento" value="{{user.departamento_nacimiento}}"
+            placeholder="Departamento de nacimiento" id="departamento_nacimiento" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>MUNICIPIO DE NACIMIENTO</label>
+          <input type="text" name="municipio_nacimiento" value="{{user.municipio_nacimiento}}"
+            placeholder="Municipio de nacimiento" id="municipio_nacimiento" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>DIRECCIÓN DE CORRESPONDENCIA</label>
+          <input type="text" name="direccion_correspondencia" value="{{user.direccion_correspondencia}}"
+            placeholder="Dirección de correspondencia" id="direccion_correspondencia" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>PAÍS DE CORRESPONDENCIA</label>
+          <input type="text" name="pais_correspondencia" value="{{user.pais_correspondencia}}"
+            placeholder="País de correspondencia" id="pais_correspondencia" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>DEPARTAMENTO DE CORRESPONDENCIA</label>
+          <input type="text" name="departamento_correspondencia" value="{{user.departamento_correspondencia}}"
+            placeholder="Departamento de correspondencia" id="departamento_correspondencia" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>MUNICIPIO DE CORRESPONDENCIA</label>
+          <input type="text" name="municipio_correspondencia" value="{{user.municipio_correspondencia}}"
+            placeholder="Municipio de correspondencia" id="municipio_correspondencia" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>TELÉFONO</label>
+          <input type="tel" placeholder="Teléfono" value="{{user.telefono}}" class="icon-left" name="telefono"
+            id="telefono" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>EMAIL</label>
+          <input type="email" placeholder="Email" value="{{user.email}}" class="icon-left" name="email" id="email" />
+        </div>
+      </section>
+      <section>
+
+        <div class="href-target" id="formacion"></div>
+        <h1>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" class="feather feather-layers">
+            <polygon points="12 2 2 7 12 12 22 7 12 2" />
+            <polyline points="2 17 12 22 22 17" />
+            <polyline points="2 12 12 17 22 12" />
+          </svg>
+          FORMACIÓN ACADÉMICA
+        </h1>
+        <h1 class="nice-form-group">EDUCACIÓN BASICA Y MEDIA</h1>
+        <fieldset class="nice-form-group">
+          <small>Seleccione el último grado aprobado</small>
+          <div class="radio-container">
+            <div class="radio-item">
+              <input type="radio" name="educacion_basica" id="1" value="1" {{#if (eq
+                educacion_basica_media.educacion_basica "1" )}}checked{{/if}} />
+              <label for="1">1</label>
+            </div>
+            <div class="radio-item">
+              <input type="radio" name="educacion_basica" id="2" value="2" {{#if (eq
+                educacion_basica_media.educacion_basica "2" )}}checked{{/if}} />
+              <label for="2">2</label>
+            </div>
+            <div class="radio-item">
+              <input type="radio" name="educacion_basica" id="3" value="3" {{#if (eq
+                educacion_basica_media.educacion_basica "3" )}}checked{{/if}} />
+              <label for="3">3</label>
+            </div>
+            <div class="radio-item">
+              <input type="radio" name="educacion_basica" id="4" value="4" {{#if (eq
+                educacion_basica_media.educacion_basica "4" )}}checked{{/if}} />
+              <label for="4">4</label>
+            </div>
+            <div class="radio-item">
+              <input type="radio" name="educacion_basica" id="5" value="5" {{#if (eq
+                educacion_basica_media.educacion_basica "5" )}}checked{{/if}} />
+              <label for="5">5</label>
+            </div>
+            <div class="radio-item">
+              <input type="radio" name="educacion_basica" id="6" value="6" {{#if (eq
+                educacion_basica_media.educacion_basica "6" )}}checked{{/if}} />
+              <label for="6">6</label>
+            </div>
+            <div class="radio-item">
+              <input type="radio" name="educacion_basica" id="7" value="7" {{#if (eq
+                educacion_basica_media.educacion_basica "7" )}}checked{{/if}} />
+              <label for="7">7</label>
+            </div>
+            <div class="radio-item">
+              <input type="radio" name="educacion_basica" id="8" value="8" {{#if (eq
+                educacion_basica_media.educacion_basica "8" )}}checked{{/if}} />
+              <label for="8">8</label>
+            </div>
+            <div class="radio-item">
+              <input type="radio" name="educacion_basica" id="9" value="9" {{#if (eq
+                educacion_basica_media.educacion_basica "9" )}}checked{{/if}} />
+              <label for="9">9</label>
+            </div>
+            <div class="radio-item">
+              <input type="radio" name="educacion_basica" id="10" value="10" {{#if (eq
+                educacion_basica_media.educacion_basica "10" )}}checked{{/if}} />
+              <label for="10">10</label>
+            </div>
+            <div class="radio-item">
+              <input type="radio" name="educacion_basica" id="11" value="11" {{#if (eq
+                educacion_basica_media.educacion_basica "11" )}}checked{{/if}} />
+              <label for="11">11</label>
+            </div>
+          </div>
+
+        </fieldset>
+
+        <div class="nice-form-group">
+          <label>TÍTULO OBTENIDO</label>
+          <input type="text" name="titulo_obtenido" value="{{educacion_basica_media.titulo_obtenido}}"
+            placeholder="Título obtenido" id="titulo_obtenido" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>FECHA DE GRADO</label>
+          <input type="month" value="{{educacion_basica_media.fecha_grado}}" id="fecha_grado" name="fecha_grado" />
+        </div>
+
+        <h1 class="nice-form-group">EDUCACIÓN SUPERIOR (pregrado y postgrado)</h1>
+        <div id="academic-container">
+          {{#if educacion_superior.length}}
+          {{#each educacion_superior}}
+          <div class="academic-block">
+            <div class="nice-form-group">
+              <input type="hidden" name="id_educacion_superior_{{@index}}" value="{{this.id_educacion_superior}}" />
+            </div>
+            <div class="nice-form-group">
+              <label>MODALIDAD ACADÉMICA</label>
+              <select name="modalidad_academica_{{@index}}">
+                <option value="" disabled {{#if (eq this.modalidad_academica "" )}}selected{{/if}}>Seleccione la
+                  modalidad académica</option>
+                <option value="TECNICA" {{#if (eq this.modalidad_academica "TECNICA" )}}selected{{/if}}>Técnica</option>
+                <option value="TECNOLOGA" {{#if (eq this.modalidad_academica "TECNOLOGA" )}}selected{{/if}}>Tecnológica
+                </option>
+                <option value="TECNOLOGA ESPECIALIZADA" {{#if (eq this.modalidad_academica "TECNOLOGA ESPECIALIZADA"
+                  )}}selected{{/if}}>Tecnología especializada</option>
+                <option value="UNIVERSITARIA" {{#if (eq this.modalidad_academica "UNIVERSITARIA" )}}selected{{/if}}>
+                  Universitaria</option>
+                <option value="ESPECIALIZACION" {{#if (eq this.modalidad_academica "ESPECIALIZACION" )}}selected{{/if}}>
+                  Especialización</option>
+                <option value="MAESTRIA O MAGISTER" {{#if (eq this.modalidad_academica "MAESTRIA O MAGISTER"
+                  )}}selected{{/if}}>Maestría o Magister</option>
+                <option value="DOCTORADO O PHD" {{#if (eq this.modalidad_academica "DOCTORADO O PHD" )}}selected{{/if}}>
+                  Doctorado o PHD</option>
+              </select>
+            </div>
+
+            <div class="nice-form-group">
+              <label>NÚMERO DE SEMESTRES APROBADOS</label>
+              <input type="number" name="semestres_aprobados_{{@index}}" value="{{this.semestres_aprobados}}"
+                placeholder="1" />
+            </div>
+
+            <fieldset class="nice-form-group">
+              <legend>GRADUADO</legend>
+              <div class="nice-form-group">
+                <input type="radio" name="graduado_{{@index}}" id="si_{{@index}}" value="SI" {{#if (eq
+                  this.graduado "SI" )}}checked{{/if}} />
+                <label for="si_{{@index}}">Si</label>
+              </div>
+              <div class="nice-form-group">
+                <input type="radio" name="graduado_{{@index}}" id="no_{{@index}}" value="NO" {{#if (eq
+                  this.graduado "NO" )}}checked{{/if}} />
+                <label for="no_{{@index}}">No</label>
+              </div>
+            </fieldset>
+
+            <div class="nice-form-group">
+              <label>NOMBRE DE LOS ESTUDIOS O TÍTULO OBTENIDO</label>
+              <input type="text" name="nombre_titulo_{{@index}}" value="{{this.nombre_titulo}}"
+                placeholder="Nombre de los estudios o título obtenido" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>TERMINACIÓN</label>
+              <input type="month" name="mes_terminacion_{{@index}}" value="{{this.mes_terminacion}}" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>NÚMERO DE TARJETA PROFESIONAL</label>
+              <input type="text" name="numero_tarjeta_profesional_{{@index}}"
+                value="{{this.numero_tarjeta_profesional}}" placeholder="Número de tarjeta profesional" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>DOCUMENTO QUE SUSTENTE LA INFORMACIÓN</label>
+              <input type="file" name="documento_educacion_superior_{{@index}}"
+                id="documento_educacion_superior_{{@index}}" />
+              <div id="file-info" style="font-size: 0.9em; color: #555;" class="nice-form-group">
+                {{#if this.documento }}
+                Archivo en la base de datos:
+                <a target="_blank" style="color: #0011ff;">
+                  {{ this.documento }}
+                </a>
+                {{else}}
+                No hay ningún archivo en la base de datos
+                {{/if}}
+              </div>
+            </div>
+          </div>
+          {{/each}}
+          {{else}}
+          <div class="academic-block">
+            <div class="nice-form-group">
+              <input type="hidden" name="id_educacion_superior_0" value="" />
+            </div>
+            <div class="nice-form-group">
+              <label>MODALIDAD ACADÉMICA</label>
+              <select name="modalidad_academica_0">
+                <option value="" disabled selected>Seleccione la modalidad académica</option>
+                <option value="TECNICA">Técnica</option>
+                <option value="TECNOLOGA">Tecnológica</option>
+                <option value="TECNOLOGA ESPECIALIZADA">Tecnología especializada</option>
+                <option value="UNIVERSITARIA">Universitaria</option>
+                <option value="ESPECIALIZACION">Especialización</option>
+                <option value="MAESTRIA O MAGISTER">Maestría o Magister</option>
+                <option value="DOCTORADO O PHD">Doctorado o PHD</option>
+              </select>
+            </div>
+
+            <div class="nice-form-group">
+              <label>NÚMERO DE SEMESTRES APROBADOS</label>
+              <input type="number" name="semestres_aprobados_0" placeholder="1" />
+            </div>
+
+            <fieldset class="nice-form-group">
+              <legend>GRADUADO</legend>
+              <div class="nice-form-group">
+                <input type="radio" name="graduado_0" id="si_0" value="SI" />
+                <label for="si_0">Si</label>
+              </div>
+              <div class="nice-form-group">
+                <input type="radio" name="graduado_0" id="no_0" value="NO" />
+                <label for="no_0">No</label>
+              </div>
+            </fieldset>
+
+            <div class="nice-form-group">
+              <label>NOMBRE DE LOS ESTUDIOS O TÍTULO OBTENIDO</label>
+              <input type="text" name="nombre_titulo_0" placeholder="Nombre de los estudios o título obtenido" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>TERMINACIÓN</label>
+              <input type="month" name="mes_terminacion_0" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>NÚMERO DE TARJETA PROFESIONAL</label>
+              <input type="text" name="numero_tarjeta_profesional_0" placeholder="Número de tarjeta profesional" />
+            </div>
+          </div>
+          <div class="nice-form-group">
+            <label>DOCUMENTO QUE SUSTENTE LA INFORMACIÓN</label>
+            <input type="file" name="documento_educacion_superior_0" id="documento_educacion_superior_0  " />
+            <div id="file-info" style="font-size: 0.9em; color: #555;" class="nice-form-group">
+              {{#if this.documento }}
+              Archivo en la base de datos:
+              <a target="_blank" style="color: #0011ff;">
+                {{ this.documento }}
+              </a>
+              {{else}}
+              No hay ningún archivo en la base de datos
+              {{/if}}
+            </div>
+          </div>
+          {{/if}}
+        </div>
+
+        <div class="botonderecha nice-form-group">
+          <button type="button" id="remove-academic" class="btn btn-danger">[-] Eliminar Información</button>
+          <button type="button" id="add-academic" class="btn btn-success ml-2">[+] Añadir Información</button>
+        </div>
+
+        <h1 class="nice-form-group">IDIOMAS DIFERENTES AL ESPAÑOL</h1>
+        <div id="languages-container">
+          {{#if idiomas.length}}
+          {{#each idiomas}}
+          <div class="language-block">
+            <div class="nice-form-group">
+              <input type="hidden" name="id_idioma_{{@index}}" value="{{this.id_idioma}}" />
+            </div>
+            <div class="nice-form-group">
+              <label for="idioma_{{@index}}">IDIOMA</label>
+              <input type="text" name="idioma_{{@index}}" id="idioma_{{@index}}" value="{{this.idioma}}"
+                placeholder="Idioma" />
+            </div>
+            <!-- LO HABLA -->
+            <fieldset class="nice-form-group">
+              <legend>LO HABLA</legend>
+              <div class="form-check form-check-inline pt-2">
+                <input class="form-check-input" type="radio" name="habla_{{@index}}" id="habla_regular_{{@index}}"
+                  value="regular" {{#if (eq this.lo_habla "REGULAR" )}}checked{{/if}} />
+                <label class="form-check-label" for="habla_regular_{{@index}}">Regular</label>
+              </div>
+              <div class="form-check form-check-inline pt-2">
+                <input class="form-check-input" type="radio" name="habla_{{@index}}" id="habla_bien_{{@index}}"
+                  value="bien" {{#if (eq this.lo_habla "BIEN" )}}checked{{/if}} />
+                <label class="form-check-label" for="habla_bien_{{@index}}">Bien</label>
+              </div>
+              <div class="form-check form-check-inline pt-2">
+                <input class="form-check-input" type="radio" name="habla_{{@index}}" id="habla_muybien_{{@index}}"
+                  value="muy bien" {{#if (eq this.lo_habla "MUY BIEN" )}}checked{{/if}} />
+                <label class="form-check-label" for="habla_muybien_{{@index}}">Muy bien</label>
+              </div>
+            </fieldset>
+            <!-- LO LEE -->
+            <fieldset class="nice-form-group">
+              <legend>LO LEE</legend>
+              <div class="form-check form-check-inline pt-2">
+                <input class="form-check-input" type="radio" name="lee_{{@index}}" id="lee_regular_{{@index}}"
+                  value="regular" {{#if (eq this.lo_lee "REGULAR" )}}checked{{/if}} />
+                <label class="form-check-label" for="lee_regular_{{@index}}">Regular</label>
+              </div>
+              <div class="form-check form-check-inline pt-2">
+                <input class="form-check-input" type="radio" name="lee_{{@index}}" id="lee_bien_{{@index}}" value="bien"
+                  {{#if (eq this.lo_lee "BIEN" )}}checked{{/if}} />
+                <label class="form-check-label" for="lee_bien_{{@index}}">Bien</label>
+              </div>
+              <div class="form-check form-check-inline pt-2">
+                <input class="form-check-input" type="radio" name="lee_{{@index}}" id="lee_muybien_{{@index}}"
+                  value="muy bien" {{#if (eq this.lo_lee "MUY BIEN" )}}checked{{/if}} />
+                <label class="form-check-label" for="lee_muybien_{{@index}}">Muy bien</label>
+              </div>
+            </fieldset>
+            <!-- LO ESCRIBE -->
+            <fieldset class="nice-form-group">
+              <legend>LO ESCRIBE</legend>
+              <div class="form-check form-check-inline pt-2">
+                <input class="form-check-input" type="radio" name="escribe_{{@index}}" id="escribe_regular_{{@index}}"
+                  value="regular" {{#if (eq this.lo_escribe "REGULAR" )}}checked{{/if}} />
+                <label class="form-check-label" for="escribe_regular_{{@index}}">Regular</label>
+              </div>
+              <div class="form-check form-check-inline pt-2">
+                <input class="form-check-input" type="radio" name="escribe_{{@index}}" id="escribe_bien_{{@index}}"
+                  value="bien" {{#if (eq this.lo_escribe "BIEN" )}}checked{{/if}} />
+                <label class="form-check-label" for="escribe_bien_{{@index}}">Bien</label>
+              </div>
+              <div class="form-check form-check-inline pt-2">
+                <input class="form-check-input" type="radio" name="escribe_{{@index}}" id="escribe_muybien_{{@index}}"
+                  value="muy bien" {{#if (eq this.lo_escribe "MUY BIEN" )}}checked{{/if}} />
+                <label class="form-check-label" for="escribe_muybien_{{@index}}">Muy bien</label>
+              </div>
+            </fieldset>
+          </div>
+          {{#if user.nombre_original_archivo }}
+          <div class="nice-form-group">
+            <label>DOCUMENTO QUE SUSTENTE LA INFORMACIÓN</label>
+            <input type="file" name="documento_id" id="documento_id" />
+            <div id="file-info" style="margin-top: 10px; font-size: 0.9em; color: #555;">
+              Archivo en la base de datos:
+              <a target="_blank" style="color: #0011ff;">
+                {{ user.nombre_original_archivo }}
+              </a>
+            </div>
+          </div>
+          {{else}}
+          <div class="nice-form-group">
+            <label>DOCUMENTO DE IDENTIFICACIÓN ESCANEADO</label>
+            <input type="file" name="documento_id" id="documento_id" required />
+            <div id="file-info" style="margin-top: 10px; font-size: 0.9em; color: #555;">
+              No hay ningún archivo en la base de datos
+            </div>
+          </div>
+          {{/if}}
+          {{/each}}
+          {{else}}
+          <div class="language-block">
+            <div class="nice-form-group">
+              <input type="hidden" name="id_idioma_0" value="" />
+            </div>
+            <div class="nice-form-group">
+              <label for="idioma_0">IDIOMA</label>
+              <input type="text" name="idioma_0" id="idioma_0" value="" placeholder="Idioma" />
+            </div>
+            <!-- LO HABLA -->
+            <fieldset class="nice-form-group">
+              <legend>LO HABLA</legend>
+              <div class="form-check form-check-inline pt-2">
+                <input class="form-check-input" type="radio" name="habla_0" id="habla_regular_0" value="regular" />
+                <label class="form-check-label" for="habla_regular_0">Regular</label>
+              </div>
+              <div class="form-check form-check-inline pt-2">
+                <input class="form-check-input" type="radio" name="habla_0" id="habla_bien_0" value="bien" />
+                <label class="form-check-label" for="habla_bien_0">Bien</label>
+              </div>
+              <div class="form-check form-check-inline pt-2">
+                <input class="form-check-input" type="radio" name="habla_0" id="habla_muybien_0" value="muy bien" />
+                <label class="form-check-label" for="habla_muybien_0">Muy bien</label>
+              </div>
+            </fieldset>
+            <!-- LO LEE -->
+            <fieldset class="nice-form-group">
+              <legend>LO LEE</legend>
+              <div class="form-check form-check-inline pt-2">
+                <input class="form-check-input" type="radio" name="lee_0" id="lee_regular_0" value="regular" />
+                <label class="form-check-label" for="lee_regular_0">Regular</label>
+              </div>
+              <div class="form-check form-check-inline pt-2">
+                <input class="form-check-input" type="radio" name="lee_0" id="lee_bien_0" value="bien" />
+                <label class="form-check-label" for="lee_bien_0">Bien</label>
+              </div>
+              <div class="form-check form-check-inline pt-2">
+                <input class="form-check-input" type="radio" name="lee_0" id="lee_muybien_0" value="muy bien" />
+                <label class="form-check-label" for="lee_muybien_0">Muy bien</label>
+              </div>
+            </fieldset>
+            <!-- LO ESCRIBE -->
+            <fieldset class="nice-form-group">
+              <legend>LO ESCRIBE</legend>
+              <div class="form-check form-check-inline pt-2">
+                <input class="form-check-input" type="radio" name="escribe_0" id="escribe_regular_0" value="regular" />
+                <label class="form-check-label" for="escribe_regular_0">Regular</label>
+              </div>
+              <div class="form-check form-check-inline pt-2">
+                <input class="form-check-input" type="radio" name="escribe_0" id="escribe_bien_0" value="bien" />
+                <label class="form-check-label" for="escribe_bien_0">Bien</label>
+              </div>
+              <div class="form-check form-check-inline pt-2">
+                <input class="form-check-input" type="radio" name="escribe_0" id="escribe_muybien_0" value="muy bien" />
+                <label class="form-check-label" for="escribe_muybien_0">Muy bien</label>
+              </div>
+            </fieldset>
+          </div>
+          {{/if}}
+        </div>
+        <div class="botonderecha">
+          <button type="button" id="remove-language" class="btn btn-danger">[-] Eliminar Información</button>
+          <button type="button" id="add-language" class="btn btn-success ml-2">[+] Añadir Información</button>
+        </div>
+      </section>
+      <section>
+        <div class="href-target" id="experiencia"></div>
+        <h1>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" class="feather feather-align-justify">
+            <line x1="21" y1="10" x2="3" y2="10" />
+            <line x1="21" y1="6" x2="3" y2="6" />
+            <line x1="21" y1="14" x2="3" y2="14" />
+            <line x1="21" y1="18" x2="3" y2="18" />
+          </svg>
+          EXPERIENCIA LABORAL
+        </h1>
+        <h1 class="nice-form-group">EMPLEO ACTUAL O CONTRATO</h1>
+        <div class="nice-form-group">
+          <input type="hidden" name="id_experiencia_0" value="{{empleoActual.id_experiencia}}" />
+        </div>
+        <input type="hidden" name="empleo_actual_0" value="SI" />
+        <div class="nice-form-group">
+          <label>EMPRESA O ENTIDAD</label>
+          <input type="text" placeholder="Empresa o Entidad" value="{{empleoActual.empresa_entidad}}"
+            name="empresa_entidad_0" id="empresa_entidad_0" />
+        </div>
+        <fieldset class="nice-form-group">
+          <legend>TIPO DE EMPRESA O ENTIDAD</legend>
+          <div class="nice-form-group">
+            <input type="radio" name="tipo_0" id="tipo_pu_0" value="PUBLICA" {{#if (eq empleoActual.tipo "PUBLICA"
+              )}}checked{{/if}} />
+            <label for="tipo_pu_0">Pública</label>
+          </div>
+          <div class="nice-form-group">
+            <input type="radio" name="tipo_0" id="tipo_pr_0" value="PRIVADA" {{#if (eq empleoActual.tipo "PRIVADA"
+              )}}checked{{/if}} />
+            <label for="tipo_pr_0">Privada</label>
+          </div>
+        </fieldset>
+
+        <div class="nice-form-group">
+          <label>PAÍS DE LA EMPRESA O ENTIDAD</label>
+          <input type="text" placeholder="País de la Empresa o Entidad" value="{{empleoActual.pais}}" name="pais_0"
+            id="pais_0" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>DEPARTAMENTO DE LA EMPRESA O ENTIDAD</label>
+          <input type="text" placeholder="Departamento de la Empresa o Entidad" value="{{empleoActual.departamento}}"
+            name="departamento_0" id="departamento_0" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>MUNICIPIO DE LA EMPRESA O ENTIDAD</label>
+          <input type="text" placeholder="Departamento de la Empresa o Entidad" value="{{empleoActual.municipio}}"
+            name="municipio_0" id="municipio_0" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>CORREO ELECTRÓNICO DE LA EMPRESA O ENTIDAD</label>
+          <input type="text" placeholder="Correo Electrónico de la Empresa o Entidad"
+            value="{{empleoActual.correo_entidad}}" name="correo_entidad_0" id="correo_entidad_0" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>TElÉFONO DE LA EMPRESA O ENTIDAD</label>
+          <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="{{empleoActual.telefono_entidad}}"
+            name="telefono_entidad_0" id="telefono_entidad_0" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>FECHA DE INGRESO</label>
+          <input type="date" name="fecha_ingreso_0" id="fecha_ingreso_0" value="{{empleoActual.fecha_ingreso}}" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>FECHA DE RETIRO</label>
+          <input type="date" name="fecha_retiro_0" id="fecha_retiro_0" value="{{empleoActual.fecha_retiro}}" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>CARGO O CONTRATO ACTUAL</label>
+          <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="{{empleoActual.cargo_actual}}"
+            name="cargo_actual_0" id="cargo_actual_0" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>DEPENDENCIA</label>
+          <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="{{empleoActual.dependencia}}"
+            name="dependencia_0" id="dependencia_0" />
+        </div>
+
+        <div class="nice-form-group">
+          <label>DIRECCIÓN</label>
+          <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="{{empleoActual.direccion}}"
+            name="direccion_0" id="direccion_0" />
+        </div>
+        <h1 class="nice-form-group">EMPLEO ANTERIOR O CONTRATO</h1>
+        <div id="empleos-container">
+          {{#if empleosAnteriores.length}}
+          {{#each empleosAnteriores}}
+          <div id="empleos-block">
+            <div class="separador nice-form-group"></div>
+            <input type="hidden" name="empleo_actual_{{add @index 1}}" value="NO" />
+            <div class="nice-form-group">
+              <input type="hidden" name="id_experiencia_{{add @index 1}}" value="{{this.id_experiencia}}" />
+            </div>
+            <div class="nice-form-group">
+              <label>EMPRESA O ENTIDAD</label>
+              <input type="text" placeholder="Empresa o Entidad" value="{{this.empresa_entidad}}"
+                name="empresa_entidad_{{add @index 1}}" id="empresa_entidad_{{add @index 1}}" />
+            </div>
+            <fieldset class="nice-form-group">
+              <legend>TIPO DE EMPRESA O ENTIDAD</legend>
+              <div class="nice-form-group">
+                <input type="radio" name="tipo_{{add @index 1}}" id="tipo_pu_{{add @index 1}}" value="PUBLICA" {{#if (eq
+                  this.tipo "PUBLICA" )}}checked{{/if}} />
+                <label for="tipo_pu_1">Pública</label>
+              </div>
+              <div class="nice-form-group">
+                <input type="radio" name="tipo_{{add @index 1}}" id="tipo_pr_{{add @index 1}}" value="PRIVADA" {{#if (eq
+                  this.tipo "PRIVADA" )}}checked{{/if}} />
+                <label for="tipo_pr_{{add @index 1}}">Privada</label>
+              </div>
+            </fieldset>
+            <div class="nice-form-group">
+              <label>PAÍS DE LA EMPRESA O ENTIDAD</label>
+              <input type="text" placeholder="País de la Empresa o Entidad" value="{{this.pais}}"
+                name="pais_{{add @index 1}}" id="pais_{{add @index 1}}" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>DEPARTAMENTO DE LA EMPRESA O ENTIDAD</label>
+              <input type="text" placeholder="Departamento de la Empresa o Entidad" value="{{this.departamento}}"
+                name="departamento_{{add @index 1}}" id="departamento_{{add @index 1}}" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>MUNICIPIO DE LA EMPRESA O ENTIDAD</label>
+              <input type="text" placeholder="Departamento de la Empresa o Entidad" value="{{this.municipio}}"
+                name="municipio_{{add @index 1}}" id="municipio_{{add @index 1}}" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>CORREO ELECTRÓNICO DE LA EMPRESA O ENTIDAD</label>
+              <input type="text" placeholder="Correo Electrónico de la Empresa o Entidad"
+                value="{{this.correo_entidad}}" name="correo_entidad_{{add @index 1}}"
+                id="correo_entidad_{{add @index 1}}" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>TElÉFONO DE LA EMPRESA O ENTIDAD</label>
+              <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="{{this.telefono_entidad}}"
+                name="telefono_entidad_{{add @index 1}}" id="telefono_entidad_{{add @index 1}}" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>FECHA DE INGRESO</label>
+              <input type="date" name="fecha_ingreso_{{add @index 1}}" id="fecha_ingreso_{{add @index 1}}"
+                value="{{this.fecha_ingreso}}" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>FECHA DE RETIRO</label>
+              <input type="date" name="fecha_retiro_{{add @index 1}}" id="fecha_retiro_{{add @index 1}}"
+                value="{{this.fecha_retiro}}" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>CARGO O CONTRATO ACTUAL</label>
+              <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="{{this.cargo_actual}}"
+                name="cargo_actual_{{add @index 1}}" id="cargo_actual_{{add @index 1}}" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>DEPENDENCIA</label>
+              <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="{{this.dependencia}}"
+                name="dependencia_{{add @index 1}}" id="dependencia_{{add @index 1}}" />
+            </div>
+
+            <div class="nice-form-group pb-2">
+              <label>DIRECCIÓN</label>
+              <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="{{this.direccion}}"
+                name="direccion_{{add @index 1}}" id="direccion_{{add @index 1}}" />
+            </div>
+          </div>
+          {{/each}}
+          {{else}}
+          <div id="empleos-block">
+            <div class="nice-form-group"></div>
+            <input type="hidden" name="empleo_actual_1" value="NO" />
+            <div class="nice-form-group">
+              <input type="hidden" name="id_experiencia_1" value="" />
+            </div>
+            <div class="nice-form-group">
+              <label>EMPRESA O ENTIDAD</label>
+              <input type="text" placeholder="Empresa o Entidad" value="" name="empresa_entidad_1"
+                id="empresa_entidad_1" />
+            </div>
+
+            <fieldset class="nice-form-group">
+              <legend>TIPO DE EMPRESA O ENTIDAD</legend>
+              <div class="nice-form-group">
+                <input type="radio" name="tipo_1" id="tipo_pu_1" value="PUBLICA" />
+                <label for="tipo_pu_1">Pública</label>
+              </div>
+              <div class="nice-form-group">
+                <input type="radio" name="tipo_1" id="tipo_pr_1" value="PRIVADA" />
+                <label for="tipo_pr_1">Privada</label>
+              </div>
+            </fieldset>
+
+            <div class="nice-form-group">
+              <label>PAÍS DE LA EMPRESA O ENTIDAD</label>
+              <input type="text" placeholder="País de la Empresa o Entidad" value="" name="pais_1" id="pais_1" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>DEPARTAMENTO DE LA EMPRESA O ENTIDAD</label>
+              <input type="text" placeholder="Departamento de la Empresa o Entidad" value="" name="departamento_1"
+                id="departamento_1" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>MUNICIPIO DE LA EMPRESA O ENTIDAD</label>
+              <input type="text" placeholder="Departamento de la Empresa o Entidad" value="" name="municipio_1"
+                id="municipio_1" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>CORREO ELECTRÓNICO DE LA EMPRESA O ENTIDAD</label>
+              <input type="text" placeholder="Correo Electrónico de la Empresa o Entidad" value=""
+                name="correo_entidad_1" id="correo_entidad_1" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>TElÉFONO DE LA EMPRESA O ENTIDAD</label>
+              <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="" name="telefono_entidad_1"
+                id="telefono_entidad_1" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>FECHA DE INGRESO</label>
+              <input type="date" name="fecha_ingreso_1" id="fecha_ingreso_1" value="" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>FECHA DE RETIRO</label>
+              <input type="date" name="fecha_retiro_1" id="fecha_retiro_1" value="" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>CARGO O CONTRATO ACTUAL</label>
+              <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="" name="cargo_actual_1"
+                id="cargo_actual_1" />
+            </div>
+
+            <div class="nice-form-group">
+              <label>DEPENDENCIA</label>
+              <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="" name="dependencia_1"
+                id="dependencia_1" />
+            </div>
+
+            <div class="nice-form-group pb-2">
+              <label>DIRECCIÓN</label>
+              <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="" name="direccion_1"
+                id="direccion_1" />
+            </div>
+          </div>
+          {{/if}}
+        </div>
+        <div class="botonderecha nice-form-group">
+          <button type="button" id="remove-empleos" class="btn btn-danger">[-] Eliminar Información</button>
+          <button type="button" id="add-empleos" class="btn btn-success ml-2">[+] Añadir Más Empleos Anteriores</button>
+        </div>
+      </section>
+
+      <section>
+        <div class="href-target" id="tiempo"></div>
+        <h1>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-square">
+            <polyline points="9 11 12 14 22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          </svg>
+          TIEMPO TOTAL DE EXPERIENCIA
+        </h1>
+        <div class="nice-form-group">
+          <label>AÑOS TOTAL DE SERVIDOR PÚBLICO</label>
+          <input type="number" placeholder="Años Total de Servidor P+ublico"
+            value="{{tiempo_experiencia.anios_servidor_publico}}" name="anios_servidor_publico"
+            id="anios_servidor_publico" />
+        </div>
+        <div class="nice-form-group">
+          <label>MESES TOTAL DE SERVIDOR PÚBLICO</label>
+          <input type="number" placeholder="Meses Total de Servidor P+ublico"
+            value="{{tiempo_experiencia.meses_servidor_publico}}" name="meses_servidor_publico"
+            id="meses_servidor_publico" />
+        </div>
+        <div class="nice-form-group">
+          <label>AÑOS TOTAL DE EMPLEADO DEL SECTOR PRIVADO</label>
+          <input type="number" placeholder="Años Total de Empleado del Sector Privado"
+            value="{{tiempo_experiencia.anios_sector_privado}}" name="anios_sector_privado" id="anios_sector_privado" />
+        </div>
+        <div class="nice-form-group">
+          <label>MESES TOTAL DE EMPLEADO DEL SECTOR PRIVADO</label>
+          <input type="number" placeholder="Meses Total de Empleado del Sector Privado"
+            value="{{tiempo_experiencia.meses_sector_privado}}" name="meses_sector_privado" id="meses_sector_privado" />
+        </div>
+        <div class="nice-form-group">
+          <label>AÑOS TOTAL DE TRABAJADOR INDEPENDIENTE</label>
+          <input type="number" placeholder="Años Total de Trabajador Independiente"
+            value="{{tiempo_experiencia.anios_trabajador_independiente}}" name="anios_trabajador_independiente"
+            id="anios_trabajador_independiente" />
+        </div>
+        <div class="nice-form-group">
+          <label>MESES TOTAL DE TRABAJADOR INDEPENDIENTE</label>
+          <input type="number" placeholder="Meses Total de Trabajador Independiente"
+            value="{{tiempo_experiencia.meses_trabajador_independiente}}" name="meses_trabajador_independiente"
+            id="meses_trabajador_independiente" />
+        </div>
+        <div class="nice-form-group">
+          <label>AÑOS TOTALES DE TIEMPO DE EXPERIENCIA</label>
+          <input type="number" placeholder="Años Totales de Tiempo de Experiencia"
+            value="{{tiempo_experiencia.anios_total_experiencia}}" name="anios_total_experiencia"
+            id="anios_total_experiencia" />
+        </div>
+        <div class="nice-form-group">
+          <label>MESES TOTALES DE TIEMPO DE EXPERIENCIA</label>
+          <input type="number" placeholder="Meses Totales de Tiempo de Experiencia"
+            value="{{tiempo_experiencia.meses_total_experiencia}}" name="meses_total_experiencia"
+            id="meses_total_experiencia" />
+        </div>
+      </section>
+    </form>
+  </main>
+</div>
+
+<script>
+  const colombianoRadio = document.getElementById('colombiano');
+  const extranjeroRadio = document.getElementById('extranjero');
+  const paisInput = document.getElementById('pais');
+
+  function actualizarPais() {
+    if (colombianoRadio.checked) {
+      paisInput.value = 'COLOMBIA';
+      paisInput.readOnly = true;
+    } else if (extranjeroRadio.checked) {
+      paisInput.value = '';
+      paisInput.readOnly = false;
+    }
+  }
+
+  colombianoRadio.addEventListener('change', actualizarPais);
+  extranjeroRadio.addEventListener('change', actualizarPais);
+
+  document.getElementById('add-academic').addEventListener('click', function () {
+    const container = document.getElementById('academic-container');
+    const academicBlocks = container.querySelectorAll('.academic-block');
+
+    if (academicBlocks.length >= 5) {
+      alert("Solo puedes agregar un máximo de 5 bloques académicos.");
+      return;
+    }
+
+    const academicBlock = academicBlocks[0]; // Tomamos el primer bloque como plantilla
+    if (academicBlock) {
+      const newBlock = academicBlock.cloneNode(true);
+      const newIndex = academicBlocks.length; // Usamos la cantidad actual como índice
+
+      // Actualizamos los nombres e IDs de los campos dentro del bloque clonado
+      newBlock.querySelectorAll('[name]').forEach((input) => {
+        input.name = input.name.replace(/_(\d+)$/, `_${newIndex}`);
+        input.id = input.id.replace(/_(\d+)$/, `_${newIndex}`);
+      });
+
+      // Reseteamos los valores de los inputs
+      newBlock.querySelectorAll('input, select').forEach(element => {
+        if (element.tagName === 'SELECT') {
+          element.selectedIndex = 0;
+        } else if (element.type === 'radio' || element.type === 'checkbox') {
+          element.checked = false;
+        } else {
+          element.value = '';
+        }
+      });
+
+      // Crear una línea de separación entre bloques
+      const hr = document.createElement('div');
+      hr.className = 'separador';
+
+      container.appendChild(hr);
+      container.appendChild(newBlock);
+    } else {
+      console.error("El bloque académico no se encuentra en el contenedor.");
+    }
+  });
+
+
+  document.getElementById('remove-academic').addEventListener('click', function () {
+    const container = document.getElementById('academic-container');
+    const academicBlocks = container.querySelectorAll('.academic-block');
+    const separators = document.querySelectorAll('#separator');
+
+    // Verificar que haya al menos un bloque para eliminar
+    if (academicBlocks.length > 1) {
+      // Eliminar el último bloque y su separador
+      const lastBlock = academicBlocks[academicBlocks.length - 1];
+      const lastSeparator = separators[separators.length - 1];
+      container.removeChild(lastBlock);
+      if (lastSeparator) {
+        container.removeChild(lastSeparator);
+      }
+    } else {
+      // Si queda solo un bloque, limpiar sus valores
+      const lastBlock = academicBlocks[0];
+
+      // Limpiar el input hidden
+      const hiddenInput = lastBlock.querySelector('input[type="hidden"]');
+      if (hiddenInput) hiddenInput.value = '';
+
+      // Limpiar el select de modalidad académica
+      const modalidadSelect = lastBlock.querySelector('select[name^="modalidad_academica"]');
+      if (modalidadSelect) modalidadSelect.value = '';
+
+      // Limpiar el input de semestres aprobados
+      const semestresInput = lastBlock.querySelector('input[name^="semestres_aprobados"]');
+      if (semestresInput) semestresInput.value = '';
+
+      // Desmarcar los radio buttons
+      lastBlock.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.checked = false;
+      });
+
+      // Limpiar los inputs de texto
+      lastBlock.querySelectorAll('input[type="text"]').forEach(input => {
+        input.value = '';
+      });
+
+      // Limpiar los inputs de fecha
+      lastBlock.querySelectorAll('input[type="month"]').forEach(input => {
+        input.value = '';
+      });
+    }
+  });
+
+  document.getElementById('add-language').addEventListener('click', function () {
+    const container = document.getElementById('languages-container');
+
+    // Asegurémonos de que existe al menos un bloque de idioma para clonar
+    const languageBlock = container.querySelector('.language-block');
+
+    if (languageBlock.length >= 5) {
+      alert("Solo puedes agregar un máximo de 5 idiomas.");
+      return; // Detener la ejecución si ya hay 5 bloques
+    }
+
+    if (languageBlock) {
+      // Clonamos el bloque de idioma
+      const newBlock = languageBlock.cloneNode(true);
+
+      // Calculamos el nuevo índice
+      const newIndex = container.querySelectorAll('.language-block').length;
+
+      // Actualizamos todos los atributos 'name', 'id', y los 'for' de los 'label' en el nuevo bloque
+      newBlock.querySelectorAll('[name], [id]').forEach(element => {
+        if (element.name) {
+          element.name = element.name.replace(/_(\d+)$/, `_${newIndex}`);
+        }
+        if (element.id) {
+          element.id = element.id.replace(/_(\d+)$/, `_${newIndex}`);
+        }
+      });
+
+      // Asegurarse de que los 'for' de los 'label' coincidan con los nuevos 'id'
+      newBlock.querySelectorAll('label[for]').forEach(label => {
+        label.htmlFor = label.htmlFor.replace(/_(\d+)$/, `_${newIndex}`);
+      });
+
+      // Reseteamos los valores de los inputs
+      newBlock.querySelectorAll('input').forEach(input => {
+        if (input.type === 'radio' || input.type === 'checkbox') {
+          input.checked = false;
+        } else {
+          input.value = '';
+        }
+      });
+
+      // Crear un elemento <hr> para la línea de separación
+      const hr = document.createElement('div');
+      hr.className = 'separador'; // Línea negra de 2px
+      hr.id = `separator`;
+
+      container.appendChild(hr); // Agregar la línea horizontal
+      container.appendChild(newBlock);
+    } else {
+      console.error("El bloque de idioma no se encuentra en el contenedor.");
+    }
+  });
+
+  document.getElementById('remove-language').addEventListener('click', function () {
+    const container = document.getElementById('languages-container');
+    const languageBlocks = container.querySelectorAll('.language-block');
+    const separators = document.querySelectorAll('#separator');
+    const idioma = document.getElementById('idioma_0');
+    const habla = document.getElementById('habla_0');
+    const lee = document.getElementById('lee_0');
+    const escribe = document.getElementById('escribe_0');
+
+    // Verificar que haya al menos un bloque para eliminar
+    if (languageBlocks.length > 1) {
+      // Eliminar el último bloque y su separador
+      const lastBlock = languageBlocks[languageBlocks.length - 1];
+      const lastSeparator = separators[separators.length - 1];
+      container.removeChild(lastBlock);
+      if (lastSeparator) {
+        container.removeChild(lastSeparator);
+      }
+    } else {
+      // Si queda solo un bloque, limpiar sus valores
+      const lastBlock = languageBlocks[0];
+
+      const hiddenInput = lastBlock.querySelector('input[type="hidden"]');
+      if (hiddenInput) hiddenInput.value = '';
+
+      // Limpia el input del idioma
+      const idiomaInput = lastBlock.querySelector('input[name^="idioma_0"]');
+      if (idiomaInput) idiomaInput.value = '';
+
+      // Desmarca todos los radio buttons
+      lastBlock.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.checked = false;
+      });
+    }
+  });
+
+  document.getElementById('add-empleos').addEventListener('click', function () {
+    const container = document.getElementById('empleos-container');
+
+    // Asegurémonos de que existe al menos un bloque de empleo para clonar
+    const empleoBlock = container.querySelector('#empleos-block');
+
+    if (empleoBlock.length >= 5) {
+      alert("Solo puedes agregar un máximo de 5 empleos.");
+      return; // Detener la ejecución si ya hay 5 bloques
+    }
+
+    if (empleoBlock) {
+      // Clonamos el bloque de empleo
+      const newBlock = empleoBlock.cloneNode(true);
+
+      // Calculamos el nuevo índice
+      const newIndex = container.querySelectorAll('#empleos-block').length + 1;
+
+      // Actualizamos todos los atributos 'name', 'id', y los 'for' de los 'label' en el nuevo bloque
+      newBlock.querySelectorAll('[name], [id]').forEach(element => {
+        if (element.name) {
+          element.name = element.name.replace(/_(\d+)$/, `_${newIndex}`);
+        }
+        if (element.id) {
+          element.id = element.id.replace(/_(\d+)$/, `_${newIndex}`);
+        }
+      });
+
+      // Asegurarse de que los 'for' de los 'label' coincidan con los nuevos 'id'
+      newBlock.querySelectorAll('label[for]').forEach(label => {
+        label.htmlFor = label.htmlFor.replace(/_(\d+)$/, `_${newIndex}`);
+      });
+
+      // Reseteamos los valores de los inputs
+      newBlock.querySelectorAll('input').forEach(input => {
+        // Verificamos si el 'name' del input contiene 'empleo_actual'
+        if (!input.name.includes('empleo_actual')) {
+          if (input.type === 'radio' || input.type === 'checkbox') {
+            input.checked = false;
+          } else {
+            input.value = '';
+          }
+        }
+      });
+
+      const hr = document.createElement('div');
+      hr.className = 'separador'; // Línea negra de 2px
+      hr.id = `separator`;
+
+      container.appendChild(hr); // Agregar la línea horizontal
+      container.appendChild(newBlock);
+    } else {
+      console.error("El bloque de empleo no se encuentra en el contenedor.");
+    }
+  });
+
+  document.getElementById('remove-empleos').addEventListener('click', function () {
+    const container = document.getElementById('empleos-container');
+    const empleoBlocks = container.querySelectorAll('#empleos-block');
+    const separators = container.querySelectorAll('.separador');
+
+    // Verificar que haya al menos un bloque para eliminar
+    if (empleoBlocks.length > 1) {
+      // Eliminar el último bloque y su separador
+      const lastBlock = empleoBlocks[empleoBlocks.length - 1];
+      const lastSeparator = separators[separators.length - 1];
+      container.removeChild(lastBlock);
+      if (lastSeparator) {
+        container.removeChild(lastSeparator);
+      }
+    } else {
+      // Si queda solo un bloque, limpiar sus valores
+      const lastBlock = empleoBlocks[0];
+
+      // Limpiar todos los inputs en el último bloque
+      lastBlock.querySelectorAll('input').forEach(input => {
+        if (input.type === 'radio' || input.type === 'checkbox') {
+          input.checked = false; // Desmarcar radios y checkboxes
+        } else if (input.type !== 'hidden') {
+          input.value = ''; // Limpiar el valor de inputs que no sean hidden
+        }
+      });
+
+      const inputHidden = lastBlock.querySelector('input[type="hidden"][name="id_experiencia_1"], input[type="hidden"][id="id_experiencia_0"]');
+      if (inputHidden) {
+        inputHidden.remove(); // Eliminar el input del DOM
+      }
+    }
+  });
+
+  function enviarFormulario() {
+    let formulario = document.getElementById('datos-form');
+    let inputs = formulario.querySelectorAll("input, select, textarea"); // Selecciona todos los campos del formulario
+    let faltanDatos = false;
+
+    inputs.forEach(input => {
+      if (input.hasAttribute("required") && !input.value.trim()) {
+        faltanDatos = true;
+        input.style.border = "2px solid red"; // Resalta el campo vacío
+      } else {
+        input.style.border = ""; // Restablece el borde si el campo está lleno
+      }
+    });
+
+    if (faltanDatos) {
+      alert("Por favor, completa todos los campos obligatorios.");
+    } else {
+      formulario.submit();
+    }
+  }
+
+  function descargarPDF() {
+    fetch('/hoja/generar-pdf', {
+      method: 'GET',
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Error al generar el PDF');
+        }
+        // Extraer el nombre del archivo desde el header `Content-Disposition`
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let fileName = 'HOJA_DE_VIDA.pdf'; // Nombre por defecto
+
+        if (contentDisposition) {
+          const match = contentDisposition.match(/filename="?([^"]+)"?/);
+          if (match && match[1]) {
+            fileName = match[1];
+          }
+        }
+
+        return response.blob().then(blob => ({ blob, fileName }));
+      })
+      .then(({ blob, fileName }) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName; // Se usa el nombre asignado por el backend
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(error => console.error('Error al descargar el PDF:', error));
+  }
+</script>

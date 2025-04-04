@@ -1,0 +1,45 @@
+<main class="signup d-flex">
+  <div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="row w-100">
+      <div class="col-lg-6 col-md-8 col-sm-10 mx-auto">
+        <div class="card text-center shadow-lg custom-border-extern">
+          <div class="card-header bg-dark text-white navbar">
+            <h3 class="mx-auto">Crear cuenta</h3>
+          </div>
+          <div class="card-body">
+            <form action="/signup" method="POST">
+              <div class="form-group mb-3">
+                <input type="text" name="primer_apellido" placeholder="Primer apellido" class="form-control" autofocus required>
+              </div>
+              <div class="form-group mb-3">
+                <input type="text" name="segundo_apellido" placeholder="Segundo apellido" class="form-control" required>
+              </div>
+              <div class="form-group mb-3">
+                <input type="text" name="nombres" placeholder="Nombres" class="form-control" required>
+              </div>
+              <div class="form-group mb-3">
+                <select name="tipo_documento" class="form-control">
+                  <option value="" disabled selected>Seleccione tipo de documento</option>
+                  <option value="C.C">C.C</option>
+                  <option value="C.E">C.E</option>
+                  <option value="PAS">PAS</option>
+                </select>
+              </div>
+              <div class="form-group mb-3">
+                <input type="text" name="numero_documento" placeholder="Número de documento" class="form-control" required>
+              </div>
+              <div class="form-group mb-3">
+                <input type="password" name="password" placeholder="Contraseña" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <button class="btn btn-success w-100">
+                  Crear
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
