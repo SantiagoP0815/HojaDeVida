@@ -10,16 +10,18 @@ const storage = multer.diskStorage({
         const nombres = req.body.nombres || ''; // Obtén el nombre de `req.body` (asegúrate de enviarlo desde el formulario)
         const primerApellido = req.body.primer_apellido || '';
         const segundoApellido = req.body.segundo_apellido || '';
+        const numeroDocumento = req.body.numero_documento || ''; // Número de documento del usuario
         const tipoDocumento = file.fieldname; // Nombre del campo, como 'documento_id' o 'libreta_militar'
 
         // Reemplazar espacios con guiones bajos
         const nombresLimpios = nombres.replace(/\s+/g, '_');
+        const numero_documentoLimpio = numeroDocumento.replace(/\s+/g, '');
         const primerApellidoLimpio = primerApellido.replace(/\s+/g, '');
         const segundoApellidoLimpio = segundoApellido.replace(/\s+/g, '');
 
         // Generar nombre del archivo
         const extension = path.extname(file.originalname); // Extensión del archivo
-        const nombreArchivo = `${primerApellidoLimpio}_${segundoApellidoLimpio}_${nombresLimpios}_${tipoDocumento}${extension}`;
+        const nombreArchivo = `${numero_documentoLimpio}_${primerApellidoLimpio}_${segundoApellidoLimpio}_${nombresLimpios}_${tipoDocumento}${extension}`;
 
         cb(null, nombreArchivo); // Guardar el archivo con el nombre personalizado
     }

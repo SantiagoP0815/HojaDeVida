@@ -8,34 +8,70 @@
           </div>
           <div class="card-body">
             <form action="/signup" method="POST">
-              <div class="form-group mb-3">
-                <input type="text" name="primer_apellido" placeholder="Primer apellido" class="form-control" autofocus required>
+
+              <!-- Primer y segundo apellido lado a lado -->
+              <div class="d-flex w-100 mb-3">
+                <input type="text" name="primer_apellido" placeholder="Primer apellido"
+                  class="form-control flex-fill mr-1" style="min-width: 0;" required>
+                <input type="text" name="segundo_apellido" placeholder="Segundo apellido" class="form-control flex-fill ml-1"
+                  style="min-width: 0;" required>
               </div>
-              <div class="form-group mb-3">
-                <input type="text" name="segundo_apellido" placeholder="Segundo apellido" class="form-control" required>
-              </div>
+
+              <!-- Nombres (único campo) -->
               <div class="form-group mb-3">
                 <input type="text" name="nombres" placeholder="Nombres" class="form-control" required>
               </div>
-              <div class="form-group mb-3">
-                <select name="tipo_documento" class="form-control">
-                  <option value="" disabled selected>Seleccione tipo de documento</option>
+
+              <!-- Tipo de documento y número lado a lado -->
+              <div class="d-flex w-100 mb-3">
+                <select name="tipo_documento" class="form-control flex-fill mr-1" style="min-width: 0;" required>
+                  <option value="" disabled selected>Tipo de documento</option>
                   <option value="C.C">C.C</option>
                   <option value="C.E">C.E</option>
                   <option value="PAS">PAS</option>
                 </select>
+                <input type="text" name="numero_documento" placeholder="Número de documento"
+                  class="form-control flex-fill ml-1" style="min-width: 0;" required>
               </div>
-              <div class="form-group mb-3">
-                <input type="text" name="numero_documento" placeholder="Número de documento" class="form-control" required>
-              </div>
+
+              <!-- Contraseña -->
               <div class="form-group mb-3">
                 <input type="password" name="password" placeholder="Contraseña" class="form-control" required>
               </div>
-              <div class="form-group">
-                <button class="btn btn-success w-100">
-                  Crear
-                </button>
+
+              <!-- Selección de vereda -->
+              <div class="form-group mb-3">
+                <select name="vereda" class="form-control" required>
+                  <option value="" disabled selected>Seleccione vereda</option>
+                  <option value="Pedregal Alto">Pedregal Alto</option>
+                  <option value="Pedregal Bajo">Pedregal Bajo</option>
+                  <option value="La Lajita">La Lajita</option>
+                  <option value="El Bosque">El Bosque</option>
+                  <option value="El Moral">El Moral</option>
+                  <option value="El Palmar">El Palmar</option>
+                  <option value="Palmarito">Palmarito</option>
+                  <option value="Juan Curí">Juan Curí</option>
+                  <option value="La Laguna">La Laguna</option>
+                  <option value="Santa Rita">Santa Rita</option>
+                  <option value="Caguanoque">Caguanoque</option>
+                  <option value="Centro">Centro</option>
+                </select>
               </div>
+
+              <!-- Pregunta fija -->
+              <div class="form-group mb-3 text-start">
+                <label for="respuesta_junta" class="form-label">
+                  ¿Cómo se llama el presidente de la junta de acción comunal de tu vereda?
+                </label>
+                <input type="text" id="respuesta_junta" name="respuesta_junta" placeholder="Respuesta"
+                  class="form-control" required>
+              </div>
+
+              <!-- Botón de envío -->
+              <div class="form-group">
+                <button class="btn btn-success w-100">Crear</button>
+              </div>
+
             </form>
           </div>
         </div>

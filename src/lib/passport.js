@@ -35,38 +35,89 @@ passport.use('local.signin', new LocalStrategy({
 }));
 
 passport.use('local.signup', new LocalStrategy({
-  usernameField: 'numero_documento', // Campo único del usuario
+  usernameField: 'numero_documento',
   passwordField: 'password',
   passReqToCallback: true
 }, async (req, numero_documento, password, done) => {
-  try {
-    // Extrayendo los campos adicionales del cuerpo de la solicitud
-    const { primer_apellido, segundo_apellido, nombres, tipo_documento } = req.body;
+  const {
+    primer_apellido,
+    segundo_apellido,
+    nombres,
+    tipo_documento,
+    vereda,
+    respuesta_junta
+  } = req.body;
 
-    // Creando un objeto para el nuevo usuario
-    let newUser = {
+  // 1) Sanitizar input de vereda
+  const veredaBusca = vereda.trim();
+
+  try {
+    // 2) Query con TRIM + LOWER
+    const sql = `
+      SELECT nombre_presidente
+        FROM junta_presidentes
+       WHERE LOWER(TRIM(vereda)) = LOWER(?)
+      LIMIT 1
+    `;
+
+
+    const rows = await pool.query(sql, [veredaBusca]);
+
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+      console.error('Error: la consulta no devolvió resultados o no es un array:', rows);
+      console.error('Vereda no encontrada en BD:', JSON.stringify(veredaBusca));
+      return done(null, false, req.flash('message', 'Vereda no encontrada.'));
+    }
+
+    const oficialRaw = rows[0].nombre_presidente;
+    if (typeof oficialRaw !== 'string') {
+      console.error('Columna nombre_presidente ausente o mal nombrada:', rows[0]);
+      return done(null, false, req.flash('message', 'Error en la base de datos.'));
+    }
+
+    // 3) Sanitizar también el nombre de presidente y la respuesta
+    const oficial = oficialRaw.trim().toLowerCase();
+    const respuestaLt = respuesta_junta.trim().toLowerCase();
+    /*
+        if (oficial !== respuestaLt) {
+          return done(null, false, req.flash('message', 'La respuesta es incorrecta.'));
+        }
+    */
+
+    // Verificar si el número de documento ya existe
+    const checkQuery = 'SELECT id_persona FROM personas WHERE numero_documento = ? LIMIT 1';
+    const existingUser = await pool.query(checkQuery, [numero_documento]);
+
+    if (existingUser.length > 0) {
+      return done(null, false, req.flash('message', 'Ya existe un usuario con ese número de documento.'));
+    }
+
+    // 4) Crear usuario
+    const newUser = {
       primer_apellido,
       segundo_apellido,
       nombres,
       tipo_documento,
       numero_documento,
-      password: await helpers.encryptPassword(password), // Encriptando la contraseña
-      unique_identifier: uuidv4() // Generar un identificador único
+      password: await helpers.encryptPassword(password),
+      unique_identifier: uuidv4(),
+      vereda: veredaBusca,
     };
 
-    // Guardando en la base de datos
-    const result = await pool.query('INSERT INTO personas SET ?', newUser);
-
-    // Asignando el ID insertado al usuario
+    const result = await pool.query(
+      'INSERT INTO personas SET ?',
+      newUser
+    );
     newUser.id_persona = result.insertId;
-
-    // Devolviendo el usuario creado
     return done(null, newUser);
+
   } catch (err) {
     console.error('Error al registrar usuario:', err);
     return done(err);
   }
 }));
+
 
 passport.serializeUser((user, done) => {
   console.log('Usuario a serializar:', user.id_persona); // Depuración

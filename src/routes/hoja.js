@@ -74,7 +74,19 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
 { name: 'documento_educacion_superior_3', maxCount: 1 },
 { name: 'documento_educacion_superior_4', maxCount: 1 },
 { name: 'documento_educacion_superior_5', maxCount: 1 },
-{ name: ''}]), async (req, res) => {
+{ name: 'documento_idioma_0', maxCount: 1 },
+{ name: 'documento_idioma_1', maxCount: 1 },
+{ name: 'documento_idioma_2', maxCount: 1 },
+{ name: 'documento_idioma_3', maxCount: 1 },
+{ name: 'documento_idioma_4', maxCount: 1 },
+{ name: 'documento_idioma_5', maxCount: 1 },
+{ name: 'documento_experiencia_0', maxCount: 1 },
+{ name: 'documento_experiencia_1', maxCount: 1 },
+{ name: 'documento_experiencia_2', maxCount: 1 },
+{ name: 'documento_experiencia_3', maxCount: 1 },
+{ name: 'documento_experiencia_4', maxCount: 1 },
+{ name: 'documento_experiencia_5', maxCount: 1 },
+{ name: '' }]), async (req, res) => {
     const datos = req.body;
     const id_persona = req.user.id_persona;
     try {
@@ -106,7 +118,38 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
             ]
         );
 
+        const [rowsBasica] = await pool.query(`SELECT 1 FROM educacion_basica_media WHERE id_persona = ? LIMIT 1`, [id_persona]);
+
+        if (!rowsBasica || rowsBasica.length === 0) {
+            await pool.query(
+                `INSERT INTO educacion_basica_media (id_persona, titulo_obtenido, educacion_basica, fecha_grado) 
+                    VALUES (?, ?, ?, ?)`,
+                [
+                    id_persona,
+                    datos.titulo_obtenido,
+                    datos.educacion_basica,
+                    datos.fecha_grado,
+                ]
+            );
+        } else {
+            await pool.query(
+                `UPDATE educacion_basica_media SET 
+                    titulo_obtenido = ?, 
+                    educacion_basica = ?, 
+                    fecha_grado = ?
+                    WHERE id_persona = ?`,
+                [
+                    datos.titulo_obtenido,
+                    datos.educacion_basica,
+                    datos.fecha_grado,
+                    id_persona
+                ]
+            );
+        }
+
         // Eliminación e inserción en tablas de uno a muchos
+
+        const undefinedToNull = (value) => value === "" || value === "0" || value === undefined ? null : value;
 
         // Tabla "educacion_basica_media"
         // Procesar los datos dinámicamente
@@ -122,13 +165,13 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
                 (datos[`numero_tarjeta_profesional_${i}`] !== undefined && datos[`numero_tarjeta_profesional_${i}`] != '')
             ) {
                 const record = {
-                    id_educacion_superior: datos[`id_educacion_superior_${i}`],
-                    modalidad_academica: datos[`modalidad_academica_${i}`],
-                    semestres_aprobados: datos[`semestres_aprobados_${i}`],
-                    graduado: datos[`graduado_${i}`],
-                    nombre_titulo: datos[`nombre_titulo_${i}`],
-                    mes_terminacion: datos[`mes_terminacion_${i}`],
-                    numero_tarjeta_profesional: datos[`numero_tarjeta_profesional_${i}`],
+                    id_educacion_superior: undefinedToNull(datos[`id_educacion_superior_${i}`]),
+                    modalidad_academica: undefinedToNull(datos[`modalidad_academica_${i}`]),
+                    semestres_aprobados: undefinedToNull(datos[`semestres_aprobados_${i}`]),
+                    graduado: undefinedToNull(datos[`graduado_${i}`]),
+                    nombre_titulo: undefinedToNull(datos[`nombre_titulo_${i}`]),
+                    mes_terminacion: undefinedToNull(datos[`mes_terminacion_${i}`]),
+                    numero_tarjeta_profesional: undefinedToNull(datos[`numero_tarjeta_profesional_${i}`]),
                 };
                 records.push(record);
             }
@@ -150,7 +193,6 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
 
         // Crear un conjunto de IDs de registros enviados por el usuario
         const sentIds = new Set();
-
 
         // Paso 2: Procesar los registros enviados por el usuario
         for (const record of records) {
@@ -207,6 +249,49 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
                     console.error('No se encontró el registro recién insertado');
                 }
             }
+
+        }
+
+        for (let i = 0; i <= 5; i++) {
+            if (
+                (req.files[`documento_educacion_superior_${i}`]) && (
+                    (datos[`modalidad_academica_${i}`] !== undefined && datos[`modalidad_academica_${i}`] != '') ||
+                    (datos[`semestres_aprobados_${i}`] !== undefined && datos[`semestres_aprobados_${i}`] != '') ||
+                    (datos[`graduado_${i}`] !== undefined && datos[`graduado_${i}`] != '') ||
+                    (datos[`nombre_titulo_${i}`] !== undefined && datos[`nombre_titulo_${i}`] != '') ||
+                    (datos[`mes_terminacion_${i}`] !== undefined && datos[`mes_terminacion_${i}`] != '') ||
+                    (datos[`numero_tarjeta_profesional_${i}`] !== undefined && datos[`numero_tarjeta_profesional_${i}`] != '')
+                )) {
+                const documentoEducacionSuperiorFile = req.files[`documento_educacion_superior_${i}`][0];
+                const nombreOriginalDocumentoEducacionSuperior = documentoEducacionSuperiorFile.originalname; // Nombre original
+
+                let condiciones = [];
+                let valores = [nombreOriginalDocumentoEducacionSuperior, id_persona];
+                
+                const columnas = [
+                    'modalidad_academica',
+                    'semestres_aprobados',
+                    'graduado',
+                    'nombre_titulo',
+                    'mes_terminacion',
+                    'numero_tarjeta_profesional'
+                ];
+                
+                for (let col of columnas) {
+                    const valor = datos[`${col}_${i}`];
+                    if (valor === null || valor === undefined || valor === '') {
+                        condiciones.push(`${col} IS NULL`);
+                    } else {
+                        condiciones.push(`${col} = ?`);
+                        valores.push(valor);
+                    }
+                }
+                
+                const sql = `UPDATE educacion_superior SET documento = ? WHERE id_persona = ? AND ${condiciones.join(' AND ')}`;
+                
+                await pool.query(sql, valores);
+                
+            }
         }
 
         // Paso 4: Eliminar los registros que el usuario ha quitado
@@ -234,16 +319,19 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
                 (datos[`lee_${i}`] !== undefined && datos[`lee_${i}`] != '') ||
                 (datos[`escribe_${i}`] !== undefined && datos[`escribe_${i}`] != '')
             ) {
+
                 const recordIdiomas = {
-                    id_idioma: datos[`id_idioma_${i}`],
-                    idioma: datos[`idioma_${i}`],
-                    habla: datos[`habla_${i}`],
-                    lee: datos[`lee_${i}`],
-                    escribe: datos[`escribe_${i}`],
+                    id_idioma: undefinedToNull(datos[`id_idioma_${i}`]),
+                    idioma: undefinedToNull(datos[`idioma_${i}`]),
+                    habla: undefinedToNull(datos[`habla_${i}`]),
+                    lee: undefinedToNull(datos[`lee_${i}`]),
+                    escribe: undefinedToNull(datos[`escribe_${i}`]),
                 };
+
                 recordsIdiomas.push(recordIdiomas);
             }
         }
+
 
         // Paso 1: Obtener todos los registros actuales asociados a la id_persona
         const existingRecordsIdiomas = await pool.query('SELECT id_idioma FROM idiomas WHERE id_persona = ?', [id_persona]);
@@ -275,7 +363,7 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
                     // Si no existe, insertar un nuevo registro con el ID proporcionado
                     await pool.query(
                         `INSERT INTO idiomas ( id_persona, idioma, lo_habla, lo_lee, lo_escribe) 
-                        VALUES ( ?, ?, ?, ?, ?, ?, ?)`,
+                        VALUES ( ?, ?, ?, ?, ?)`,
                         [id_persona, idioma, habla, lee, escribe]
                     );
                 } else {
@@ -318,6 +406,45 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
                     console.error('No se encontró el registro recién insertado');
                 }
             }
+
+        }
+
+        for (let i = 0; i <= 5; i++) {
+            if (
+                (req.files[`documento_idioma_${i}`]) && (
+                    (datos[`idioma_${i}`] !== undefined && datos[`idioma_${i}`] != '') ||
+                    (datos[`habla_${i}`] !== undefined && datos[`habla_${i}`] != '') ||
+                    (datos[`lee_${i}`] !== undefined && datos[`lee_${i}`] != '') ||
+                    (datos[`escribe_${i}`] !== undefined && datos[`escribe_${i}`] != '')
+                )) {
+                const documentoIdiomaFile = req.files[`documento_idioma_${i}`][0];
+                const nombreOriginalDocumentoIdioma = documentoIdiomaFile.originalname; // Nombre original
+
+                let condiciones = [];
+                let valores = [nombreOriginalDocumentoIdioma, id_persona];
+                
+                const columnas = [
+                    'idioma',
+                    'lo_habla',
+                    'lo_lee',
+                    'lo_escribe',
+                ];
+                
+                for (let col of columnas) {
+                    const valor = datos[`${col}_${i}`];
+                    if (valor === null || valor === undefined || valor === '') {
+                        condiciones.push(`${col} IS NULL`);
+                    } else {
+                        condiciones.push(`${col} = ?`);
+                        valores.push(valor);
+                    }
+                }
+                
+                const sql = `UPDATE idiomas SET documento = ? WHERE id_persona = ? AND ${condiciones.join(' AND ')}`;
+                
+                await pool.query(sql, valores);
+                
+            }
         }
 
         // Paso 4: Eliminar los registros que el usuario ha quitado
@@ -355,20 +482,20 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
                 (datos[`direccion_${i}`] !== undefined && datos[`direccion_${i}`] != '')
             ) {
                 const recordExperiencia = {
-                    id_experiencia: datos[`id_experiencia_${i}`],
-                    empleo_actual: datos[`empleo_actual_${i}`],
-                    empresa_entidad: datos[`empresa_entidad_${i}`],
-                    tipo: datos[`tipo_${i}`],
-                    pais: datos[`pais_${i}`],
-                    departamento: datos[`departamento_${i}`],
-                    municipio: datos[`municipio_${i}`],
-                    correo_entidad: datos[`correo_entidad_${i}`],
-                    telefono_entidad: datos[`telefono_entidad_${i}`],
-                    fecha_ingreso: datos[`fecha_ingreso_${i}`],
-                    fecha_retiro: datos[`fecha_retiro_${i}`],
-                    cargo_actual: datos[`cargo_actual_${i}`],
-                    dependencia: datos[`dependencia_${i}`],
-                    direccion: datos[`direccion_${i}`],
+                    id_experiencia: undefinedToNull(datos[`id_experiencia_${i}`]),
+                    empleo_actual: undefinedToNull(datos[`empleo_actual_${i}`]),
+                    empresa_entidad: undefinedToNull(datos[`empresa_entidad_${i}`]),
+                    tipo: undefinedToNull(datos[`tipo_${i}`]),
+                    pais: undefinedToNull(datos[`pais_${i}`]),
+                    departamento: undefinedToNull(datos[`departamento_${i}`]),
+                    municipio: undefinedToNull(datos[`municipio_${i}`]),
+                    correo_entidad: undefinedToNull(datos[`correo_entidad_${i}`]),
+                    telefono_entidad: undefinedToNull(datos[`telefono_entidad_${i}`]),
+                    fecha_ingreso: undefinedToNull(datos[`fecha_ingreso_${i}`]),
+                    fecha_retiro: undefinedToNull(datos[`fecha_retiro_${i}`]),
+                    cargo_actual: undefinedToNull(datos[`cargo_actual_${i}`]),
+                    dependencia: undefinedToNull(datos[`dependencia_${i}`]),
+                    direccion: undefinedToNull(datos[`direccion_${i}`]),
                 };
                 recordsExperiencia.push(recordExperiencia);
             }
@@ -446,6 +573,63 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
                 } else {
                     console.error('No se encontró el registro recién insertado');
                 }
+            }
+        }
+
+        for (let i = 0; i <= 5; i++) {
+            if (
+                (req.files[`documento_experiencia_${i}`]) && (
+                    (datos[`empleo_actual_${i}`] !== undefined && datos[`empleo_actual_${i}`] != '') ||
+                    (datos[`empresa_entidad_${i}`] !== undefined && datos[`empresa_entidad_${i}`] != '') ||
+                    (datos[`tipo_${i}`] !== undefined && datos[`tipo_${i}`] != '') ||
+                    (datos[`pais_${i}`] !== undefined && datos[`pais_${i}`] != '') ||
+                    (datos[`departamento_${i}`] !== undefined && datos[`departamento_${i}`] != '') ||
+                    (datos[`municipio_${i}`] !== undefined && datos[`municipio_${i}`] != '') ||
+                    (datos[`correo_entidad_${i}`] !== undefined && datos[`correo_entidad_${i}`] != '') ||
+                    (datos[`telefono_entidad_${i}`] !== undefined && datos[`telefono_entidad_${i}`] != '') ||
+                    (datos[`fecha_ingreso_${i}`] !== undefined && datos[`fecha_ingreso_${i}`] != '') ||
+                    (datos[`fecha_retiro_${i}`] !== undefined && datos[`fecha_retiro_${i}`] != '') ||
+                    (datos[`cargo_actual_${i}`] !== undefined && datos[`cargo_actual_${i}`] != '') ||
+                    (datos[`dependencia_${i}`] !== undefined && datos[`dependencia_${i}`] != '') ||
+                    (datos[`direccion_${i}`] !== undefined && datos[`direccion_${i}`] != '')
+                )) {
+
+                const documentoIdiomaFile = req.files[`documento_experiencia_${i}`][0];
+                const nombreOriginalDocumentoExperiencia = documentoIdiomaFile.originalname; // Nombre original
+
+                let condiciones = [];
+                let valores = [nombreOriginalDocumentoExperiencia, id_persona];
+                
+                const columnas = [
+                    'empleo_actual',
+                    'empresa_entidad',
+                    'tipo',
+                    'pais',
+                    'departamento',
+                    'municipio',
+                    'correo_entidad',
+                    'telefono_entidad',
+                    'fecha_ingreso',
+                    'fecha_retiro',
+                    'cargo_actual',
+                    'dependencia',
+                    'direccion'
+                ];
+                
+                for (let col of columnas) {
+                    const valor = datos[`${col}_${i}`];
+                    if (valor === null || valor === undefined || valor === '') {
+                        condiciones.push(`${col} IS NULL`);
+                    } else {
+                        condiciones.push(`${col} = ?`);
+                        valores.push(valor);
+                    }
+                }
+                
+                const sql = `UPDATE experiencia_laboral SET documento = ? WHERE id_persona = ? AND ${condiciones.join(' AND ')}`;
+                
+                await pool.query(sql, valores);
+                
             }
         }
 

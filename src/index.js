@@ -9,12 +9,29 @@ const flash = require('connect-flash');
 const MySQLStore = require('express-mysql-session')(session);
 const bodyParser = require('body-parser');
 const Handlebars = require('handlebars');
+const os = require('os');
 
 const { database } = require('./keys');
 
 // Intializations
 const app = express();
 require('./lib/passport');
+
+function getServerIps() {
+  const interfaces = os.networkInterfaces();
+  const ips = [];
+
+  for (const interfaceName in interfaces) {
+    for (const iface of interfaces[interfaceName]) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        ips.push(iface.address);
+      }
+    }
+  }
+
+  return ips;
+}
+
 
 // Settings
 app.set('port', process.env.PORT || 4000);
@@ -76,6 +93,13 @@ app.use('/hoja', require('./routes/hoja'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Starting
-app.listen(app.get('port'), '0.0.0.0', () => {
-  console.log('Servidor corriendo en http://192.168.100.7:' + app.get('port'));
+const port = app.get('port');
+const ips = getServerIps();
+
+app.listen(port, '0.0.0.0', () => {
+  console.log('Servidor corriendo en:');
+  ips.forEach(ip => {
+    console.log(`http://${ip}:${port}`);
+  });
+  console.log(`http://localhost:${port}`);
 });

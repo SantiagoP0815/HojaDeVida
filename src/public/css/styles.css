@@ -1303,7 +1303,7 @@ details summary::-webkit-details-marker {
   border-top: none; /* El primer bloque no tiene borde superior */
 }
 
-.separador {
+.separator {
   border: #000000 5px solid;
 }
 
@@ -1324,5 +1324,5 @@ details summary::-webkit-details-marker {
 }
 
 .target {
-  padding-top: 5%;
+  padding-top: 3%;
 }
