@@ -86,7 +86,7 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
 { name: 'documento_experiencia_3', maxCount: 1 },
 { name: 'documento_experiencia_4', maxCount: 1 },
 { name: 'documento_experiencia_5', maxCount: 1 },
-{ name: '' }]), async (req, res) => {
+]), async (req, res) => {
     const datos = req.body;
     const id_persona = req.user.id_persona;
     try {
@@ -267,7 +267,7 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
 
                 let condiciones = [];
                 let valores = [nombreOriginalDocumentoEducacionSuperior, id_persona];
-                
+
                 const columnas = [
                     'modalidad_academica',
                     'semestres_aprobados',
@@ -276,7 +276,7 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
                     'mes_terminacion',
                     'numero_tarjeta_profesional'
                 ];
-                
+
                 for (let col of columnas) {
                     const valor = datos[`${col}_${i}`];
                     if (valor === null || valor === undefined || valor === '') {
@@ -286,11 +286,11 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
                         valores.push(valor);
                     }
                 }
-                
+
                 const sql = `UPDATE educacion_superior SET documento = ? WHERE id_persona = ? AND ${condiciones.join(' AND ')}`;
-                
+
                 await pool.query(sql, valores);
-                
+
             }
         }
 
@@ -422,14 +422,14 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
 
                 let condiciones = [];
                 let valores = [nombreOriginalDocumentoIdioma, id_persona];
-                
+
                 const columnas = [
                     'idioma',
                     'lo_habla',
                     'lo_lee',
                     'lo_escribe',
                 ];
-                
+
                 for (let col of columnas) {
                     const valor = datos[`${col}_${i}`];
                     if (valor === null || valor === undefined || valor === '') {
@@ -439,11 +439,11 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
                         valores.push(valor);
                     }
                 }
-                
+
                 const sql = `UPDATE idiomas SET documento = ? WHERE id_persona = ? AND ${condiciones.join(' AND ')}`;
-                
+
                 await pool.query(sql, valores);
-                
+
             }
         }
 
@@ -599,7 +599,7 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
 
                 let condiciones = [];
                 let valores = [nombreOriginalDocumentoExperiencia, id_persona];
-                
+
                 const columnas = [
                     'empleo_actual',
                     'empresa_entidad',
@@ -615,7 +615,7 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
                     'dependencia',
                     'direccion'
                 ];
-                
+
                 for (let col of columnas) {
                     const valor = datos[`${col}_${i}`];
                     if (valor === null || valor === undefined || valor === '') {
@@ -625,11 +625,11 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
                         valores.push(valor);
                     }
                 }
-                
+
                 const sql = `UPDATE experiencia_laboral SET documento = ? WHERE id_persona = ? AND ${condiciones.join(' AND ')}`;
-                
+
                 await pool.query(sql, valores);
-                
+
             }
         }
 
