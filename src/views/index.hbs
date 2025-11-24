@@ -1,28 +1,33 @@
 <main class="index">
     <header class="masthead">
-        <div class="masthead-content">
-            <h1 class="mb-2">Hoja de Vida Profesional</h1>
-            <h3 class="mb-4">Crea, gestiona y exporta tu currículum fácilmente.</h3>
+        <div class="container h-100 d-flex flex-column justify-content-center align-items-center masthead-content">
             
-            <div class="d-flex justify-content-center gap-3 mb-5">
-                {{#if user}}
-                    <a class="btn btn-success-custom btn-lg mx-2" href="/hoja/add">
-                        <i class="fas fa-edit"></i> Editar
-                    </a>
-                    <a class="btn btn-primary-custom btn-lg mx-2" href="/profile">
-                        <i class="fas fa-user"></i> Perfil
-                    </a>
-                {{else}}
-                    <a class="btn btn-primary-custom btn-lg mx-2" href="/signin">
-                        <i class="fas fa-sign-in-alt"></i> Entrar
-                    </a>
-                    <a class="btn btn-success-custom btn-lg mx-2" href="/signup">
-                        <i class="fas fa-user-plus"></i> Registro
-                    </a>
-                {{/if}}
+            <div class="text-center mb-5">
+                <h1 class="mb-3 text-white fw-bold" style="font-size: 3.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.6);">Hoja de Vida Profesional</h1>
+                <h3 class="mb-4 text-light fst-italic" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.6);">
+                    Crea, gestiona y exporta tu currículum fácilmente.
+                </h3>
+                
+                <div class="d-flex justify-content-center gap-3">
+                    {{#if user}}
+                        <a class="btn btn-success btn-lg px-4 rounded-pill shadow" href="/hoja/add">
+                            <i class="fas fa-edit me-2"></i> Crear / Editar
+                        </a>
+                        <a class="btn btn-primary btn-lg px-4 rounded-pill shadow" href="/profile">
+                            <i class="fas fa-user me-2"></i> Mi Perfil
+                        </a>
+                    {{else}}
+                        <a class="btn btn-primary btn-lg px-4 rounded-pill shadow" href="/signin">
+                            <i class="fas fa-sign-in-alt me-2"></i> Iniciar Sesión
+                        </a>
+                        <a class="btn btn-success btn-lg px-4 rounded-pill shadow" href="/signup">
+                            <i class="fas fa-user-plus me-2"></i> Registrarse
+                        </a>
+                    {{/if}}
+                </div>
             </div>
 
-            <div class="info-cards-row">
+            <div class="info-cards-row w-100">
                 <div class="info-card">
                     <div class="card-icon"><i class="fas fa-file-pdf"></i></div>
                     <h4>PDF Instantáneo</h4>
@@ -41,5 +46,6 @@
             </div>
 
         </div>
+        <div class="overlay"></div>
     </header>
 </main>

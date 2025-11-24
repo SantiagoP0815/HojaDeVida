@@ -123,3 +123,15 @@ app.listen(port, '0.0.0.0', () => {
 Handlebars.registerHelper('eq', function(a, b) {
   return a == b;
 });
+
+Handlebars.registerHelper('range', function(start, end) {
+  let range = [];
+  for (let i = start; i < end; i++) {
+    range.push(i);
+  }
+  return range;
+});
+
+Handlebars.registerHelper('add', function (a, b) {
+  return a + b;
+});
