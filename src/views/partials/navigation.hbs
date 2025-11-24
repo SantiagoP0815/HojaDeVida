@@ -1,35 +1,32 @@
-<nav class="navbar fixed-top navbar-expand-lg">
+<nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
-    <a class="navbar-brand text-white" href="/">
-      <i class="bi bi-house-fill"></i> Hoja de vida
+    <a class="navbar-brand" href="/">
+      <i class="bi bi-person-badge-fill"></i> Hoja de vida
     </a>
-    <div class="d-flex">
-      <ul class="navbar-nav d-flex flex-row">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
         {{#if user}}
+        <li class="nav-item">
+          <a class="nav-link" href="/hoja/add">Perfil</a>
+        </li>
         {{#if (eq user.admin "SI")}}
-        <li class="nav-item mx-2">
-          <a class="nav-link text-white" href="/hoja/list">Lista</a>
-        </li>
-        <li class="nav-item mx-2">
-          <a class="nav-link text-white" href="/hoja/add">Perfil</a>
-        </li>
-        <li class="nav-item mx-2">
-          <a class="nav-link text-white" href="/logout">Salir</a>
-        </li>
-        {{else}}
-        <li class="nav-item mx-2">
-          <a class="nav-link text-white" href="/hoja/add">Perfil</a>
-        </li>
-        <li class="nav-item mx-2">
-          <a class="nav-link text-white" href="/logout">Salir</a>
+        <li class="nav-item">
+          <a class="nav-link" href="/hoja/list">Lista</a>
         </li>
         {{/if}}
-        {{else}}
-        <li class="nav-item mx-2">
-          <a class="nav-link text-white" href="/signin">Inicia Sesión</a>
+        <li class="nav-item">
+          <a class="nav-link" href="/logout">Salir</a>
         </li>
-        <li class="nav-item mx-2">
-          <a class="nav-link text-white" href="/signup">Registrar</a>
+        {{else}}
+        <li class="nav-item">
+          <a class="nav-link" href="/signin">Inicia Sesión</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/signup">Registrar</a>
         </li>
         {{/if}}
       </ul>
