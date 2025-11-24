@@ -1,25 +1,45 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../database');
+const db = require('../database');
 const { isLoggedIn } = require('../lib/auth');
 const upload = require('../lib/upload');
 const PdfPrinter = require('pdfmake');
+const fs = require('fs');
+const path = require('path');
+const { body, validationResult } = require('express-validator');
 
-const fonts = {
-    Helvetica: {
-        normal: 'Helvetica',
-        bold: 'Helvetica-Bold',
-        italics: 'Helvetica-Oblique',
-        bolditalics: 'Helvetica-BoldOblique'
-    }
-};
-
+const fonts = { Helvetica: { normal: 'Helvetica', bold: 'Helvetica-Bold', italics: 'Helvetica-Oblique', bolditalics: 'Helvetica-BoldOblique' } };
 const printer = new PdfPrinter(fonts);
+
+// Reglas de validación para insertar/actualizar datos
+const insertarDatosValidators = [
+  body('nombres').trim().notEmpty().withMessage('El campo nombres es obligatorio.'),
+  body('primer_apellido').trim().notEmpty().withMessage('El primer apellido es obligatorio.'),
+  body('tipo_documento').trim().notEmpty().withMessage('El tipo de documento es obligatorio.'),
+  body('numero_documento').trim().notEmpty().withMessage('El número de documento es obligatorio.'),
+  body('email').optional({ checkFalsy: true }).isEmail().withMessage('Correo electrónico inválido.'),
+  body('telefono').optional({ checkFalsy: true }).isLength({ min: 7 }).withMessage('Teléfono inválido.'),
+  body('fecha_nacimiento').optional({ checkFalsy: true }).isISO8601().withMessage('Fecha de nacimiento inválida (YYYY-MM-DD).'),
+  body('anios_total_experiencia').optional({ checkFalsy: true }).isInt({ min: 0 }).withMessage('Años de experiencia inválidos.'),
+  body('meses_total_experiencia').optional({ checkFalsy: true }).isInt({ min: 0, max: 11 }).withMessage('Meses de experiencia inválidos (0-11).')
+];
+
+// Ensure documentos table exists
+db.query(`CREATE TABLE IF NOT EXISTS documentos (
+    id_documento INT AUTO_INCREMENT PRIMARY KEY,
+    id_persona INT NOT NULL,
+    original_name VARCHAR(255),
+    filename VARCHAR(255),
+    mimetype VARCHAR(100),
+    size INT,
+    path VARCHAR(500),
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)`).catch(err => console.error('Error creando tabla documentos (si no existe):', err));
 
 router.get("/list", isLoggedIn, async (req, res) => {
     try {
         // Verificar si el usuario es administrador
-        const adminRows = await pool.query(
+        const adminRows = await db.query(
             `SELECT id_persona FROM personas WHERE id_persona = ? AND admin = 'SI' LIMIT 1`,
             [req.user.id_persona]
         );
@@ -30,7 +50,7 @@ router.get("/list", isLoggedIn, async (req, res) => {
         }
 
         // Obtener todas las personas
-        const personas = await pool.query('SELECT * FROM personas');
+        const personas = await db.query('SELECT * FROM personas');
 
         // Renderizar la vista con los datos
         res.render('hoja/list', { personas: personas });
@@ -41,33 +61,42 @@ router.get("/list", isLoggedIn, async (req, res) => {
 });
 
 router.get('/add', isLoggedIn, async (req, res) => {
-    const idiomas = await pool.query('SELECT * FROM idiomas WHERE id_persona = ?', [req.user.id_persona]);
-    const educacion_basica_media = (await pool.query('SELECT * FROM educacion_basica_media WHERE id_persona = ?', [req.user.id_persona]))[0] || {};
-    const educacion_superior = await pool.query('SELECT * FROM educacion_superior WHERE id_persona = ?', [req.user.id_persona]);
-    const tiempo_experiencia = (await pool.query('SELECT * FROM tiempo_experiencia WHERE id_persona = ?', [req.user.id_persona]))[0] || {};
-    const empleos = await pool.query('SELECT * FROM experiencia_laboral WHERE id_persona = ?', [req.user.id_persona]);
+    const idiomas = await db.query('SELECT * FROM idiomas WHERE id_persona = ?', [req.user.id_persona]);
+    const educacion_basica_media = (await db.query('SELECT * FROM educacion_basica_media WHERE id_persona = ?', [req.user.id_persona]))[0] || {};
+    const educacion_superior = await db.query('SELECT * FROM educacion_superior WHERE id_persona = ?', [req.user.id_persona]);
+    const tiempo_experiencia = (await db.query('SELECT * FROM tiempo_experiencia WHERE id_persona = ?', [req.user.id_persona]))[0] || {};
+    const empleos = await db.query('SELECT * FROM experiencia_laboral WHERE id_persona = ?', [req.user.id_persona]);
     const empleoActual = empleos.find(empleo => empleo.empleo_actual === 'SI') || null;
     const empleosAnteriores = empleos.filter(empleo => empleo.empleo_actual === 'NO');
-    res.render('hoja/add', { idiomas: idiomas, educacion_basica_media: educacion_basica_media, educacion_superior: educacion_superior, empleosAnteriores: empleosAnteriores, empleoActual: empleoActual, tiempo_experiencia: tiempo_experiencia });
+
+    // Obtener todos los documentos del usuario
+    const documentos = await db.query('SELECT * FROM documentos WHERE id_persona = ? ORDER BY uploaded_at DESC', [req.user.id_persona]);
+
+    res.render('hoja/add', { idiomas: idiomas, educacion_basica_media: educacion_basica_media, educacion_superior: educacion_superior, empleosAnteriores: empleosAnteriores, empleoActual: empleoActual, tiempo_experiencia: tiempo_experiencia, documentos });
 });
 
 router.get('/view/:unique_identifier', async (req, res) => {
     const { unique_identifier } = req.params;
-    const persona = (await pool.query('SELECT * FROM personas WHERE unique_identifier = ?', [unique_identifier]))[0];
+    const persona = (await db.query('SELECT * FROM personas WHERE unique_identifier = ?', [unique_identifier]))[0];
     if (!persona) {
         return res.status(404).send('Persona no encontrada');
     }
-    const idiomas = await pool.query('SELECT * FROM idiomas WHERE id_persona = ?', [persona.id_persona]);
-    const educacion_basica_media = (await pool.query('SELECT * FROM educacion_basica_media WHERE id_persona = ?', [persona.id_persona]))[0] || {};
-    const educacion_superior = await pool.query('SELECT * FROM educacion_superior WHERE id_persona = ?', [persona.id_persona]);
-    const tiempo_experiencia = (await pool.query('SELECT * FROM tiempo_experiencia WHERE id_persona = ?', [persona.id_persona]))[0] || {};
-    const empleos = await pool.query('SELECT * FROM experiencia_laboral WHERE id_persona = ?', [persona.id_persona]);
+    const idiomas = await db.query('SELECT * FROM idiomas WHERE id_persona = ?', [persona.id_persona]);
+    const educacion_basica_media = (await db.query('SELECT * FROM educacion_basica_media WHERE id_persona = ?', [persona.id_persona]))[0] || {};
+    const educacion_superior = await db.query('SELECT * FROM educacion_superior WHERE id_persona = ?', [persona.id_persona]);
+    const tiempo_experiencia = (await db.query('SELECT * FROM tiempo_experiencia WHERE id_persona = ?', [persona.id_persona]))[0] || {};
+    const empleos = await db.query('SELECT * FROM experiencia_laboral WHERE id_persona = ?', [persona.id_persona]);
     const empleoActual = empleos.find(empleo => empleo.empleo_actual === 'SI') || null;
     const empleosAnteriores = empleos.filter(empleo => empleo.empleo_actual === 'NO');
-    res.render('hoja/view', { persona: persona, idiomas: idiomas, educacion_basica_media: educacion_basica_media, educacion_superior: educacion_superior, empleosAnteriores: empleosAnteriores, empleoActual: empleoActual, tiempo_experiencia: tiempo_experiencia });
+
+    // Obtener documento más reciente de la persona
+    const documentosRows = await db.query('SELECT * FROM documentos WHERE id_persona = ? ORDER BY uploaded_at DESC LIMIT 1', [persona.id_persona]);
+    const documento = Array.isArray(documentosRows) && documentosRows.length > 0 ? documentosRows[0] : null;
+
+    res.render('hoja/view', { persona: persona, idiomas: idiomas, educacion_basica_media: educacion_basica_media, educacion_superior: educacion_superior, empleosAnteriores: empleosAnteriores, empleoActual: empleoActual, tiempo_experiencia: tiempo_experiencia, documento });
 });
 
-router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id', maxCount: 1 },
+router.post('/insertar-datos', isLoggedIn, insertarDatosValidators, upload.fields([{ name: 'documento_id', maxCount: 1 },
 { name: 'documento_educacion_superior_0', maxCount: 1 },
 { name: 'documento_educacion_superior_1', maxCount: 1 },
 { name: 'documento_educacion_superior_2', maxCount: 1 },
@@ -87,499 +116,419 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
 { name: 'documento_experiencia_4', maxCount: 1 },
 { name: 'documento_experiencia_5', maxCount: 1 },
 ]), async (req, res) => {
-    const datos = req.body;
-    const id_persona = req.user.id_persona;
-    try {
-        // Primero, subimos los archivos y los guardamos en la base de datos
-        if (req.files) {
-            // Guardar documento_id
-            if (req.files['documento_id']) {
-                const documentoIdFile = req.files['documento_id'][0];
-                const nombreOriginalDocumentoId = documentoIdFile.originalname; // Nombre original    
+  // Validación de campos
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const mensajes = errors.array().map(e => e.msg).join(' | ');
+    req.flash('message', mensajes);
+    return res.redirect('/hoja/add');
+  }
+     const datos = req.body;
+     const id_persona = req.user.id_persona;
+     try {
+        // Execute DB changes inside a transaction for atomicity
+        await db.withTransaction(async (conn) => {
+            // Ensure documentos table exists inside transaction as well
+            await conn.query(`CREATE TABLE IF NOT EXISTS documentos (
+                id_documento INT AUTO_INCREMENT PRIMARY KEY,
+                id_persona INT NOT NULL,
+                original_name VARCHAR(255),
+                filename VARCHAR(255),
+                mimetype VARCHAR(100),
+                size INT,
+                path VARCHAR(500),
+                uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )`);
 
-                // Guardar en la tabla documentos
-                await pool.query(
-                    `UPDATE personas SET nombre_original_archivo = ? WHERE id_persona = ?`,
-                    [nombreOriginalDocumentoId, id_persona]
-                );
+            // Primero, subimos los archivos y los guardamos en la base de datos
+            if (req.files) {
+                // Guardar documento_id
+                if (req.files['documento_id']) {
+                    const documentoIdFile = req.files['documento_id'][0];
+                    const nombreGuardado = documentoIdFile.filename; // nombre en disco
+                    const originalName = documentoIdFile.originalname;
+                    const mimetype = documentoIdFile.mimetype;
+                    const size = documentoIdFile.size;
+                    const relativePath = path.join('src', 'docs', nombreGuardado);
 
-            }
-        }
-        // Actualización en tablas de uno a uno
-        await pool.query(
-            `UPDATE personas SET nombres = ?, primer_apellido = ?, segundo_apellido = ?, tipo_documento = ?, numero_documento = ?, sexo = ?, nacionalidad = ?, pais = ?, tipo_libreta_militar = ?, numero_libreta_militar = ?, dm_libreta_militar = ?, fecha_nacimiento = ?, pais_nacimiento = ?, departamento_nacimiento = ?, municipio_nacimiento = ?, direccion_correspondencia = ?, pais_correspondencia = ?, departamento_correspondencia = ?, municipio_correspondencia = ?, telefono = ?, email = ? WHERE id_persona = ?`,
-            [
-                datos.nombres, datos.primer_apellido, datos.segundo_apellido, datos.tipo_documento, datos.numero_documento,
-                datos.sexo, datos.nacionalidad, datos.pais, datos.tipo_libreta_militar,
-                datos.numero_libreta_militar, datos.dm_libreta_militar, datos.fecha_nacimiento, datos.pais_nacimiento,
-                datos.departamento_nacimiento, datos.municipio_nacimiento, datos.direccion_correspondencia,
-                datos.pais_correspondencia, datos.departamento_correspondencia, datos.municipio_correspondencia,
-                datos.telefono, datos.email, id_persona
-            ]
-        );
-
-        const [rowsBasica] = await pool.query(`SELECT 1 FROM educacion_basica_media WHERE id_persona = ? LIMIT 1`, [id_persona]);
-
-        if (!rowsBasica || rowsBasica.length === 0) {
-            await pool.query(
-                `INSERT INTO educacion_basica_media (id_persona, titulo_obtenido, educacion_basica, fecha_grado) 
-                    VALUES (?, ?, ?, ?)`,
-                [
-                    id_persona,
-                    datos.titulo_obtenido,
-                    datos.educacion_basica,
-                    datos.fecha_grado,
-                ]
-            );
-        } else {
-            await pool.query(
-                `UPDATE educacion_basica_media SET 
-                    titulo_obtenido = ?, 
-                    educacion_basica = ?, 
-                    fecha_grado = ?
-                    WHERE id_persona = ?`,
-                [
-                    datos.titulo_obtenido,
-                    datos.educacion_basica,
-                    datos.fecha_grado,
-                    id_persona
-                ]
-            );
-        }
-
-        // Eliminación e inserción en tablas de uno a muchos
-
-        const undefinedToNull = (value) => value === "" || value === "0" || value === undefined ? null : value;
-
-        // Tabla "educacion_basica_media"
-        // Procesar los datos dinámicamente
-        const records = [];
-        for (let i = 0; i <= 5; i++) {
-            if (
-                (datos[`id_educacion_superior_${i}`] !== undefined && datos[`id_educacion_superior_${i}`] != '') ||
-                (datos[`modalidad_academica_${i}`] !== undefined && datos[`modalidad_academica_${i}`] != '') ||
-                (datos[`semestres_aprobados_${i}`] !== undefined && datos[`semestres_aprobados_${i}`] != '') ||
-                (datos[`graduado_${i}`] !== undefined && datos[`graduado_${i}`] != '') ||
-                (datos[`nombre_titulo_${i}`] !== undefined && datos[`nombre_titulo_${i}`] != '') ||
-                (datos[`mes_terminacion_${i}`] !== undefined && datos[`mes_terminacion_${i}`] != '') ||
-                (datos[`numero_tarjeta_profesional_${i}`] !== undefined && datos[`numero_tarjeta_profesional_${i}`] != '')
-            ) {
-                const record = {
-                    id_educacion_superior: undefinedToNull(datos[`id_educacion_superior_${i}`]),
-                    modalidad_academica: undefinedToNull(datos[`modalidad_academica_${i}`]),
-                    semestres_aprobados: undefinedToNull(datos[`semestres_aprobados_${i}`]),
-                    graduado: undefinedToNull(datos[`graduado_${i}`]),
-                    nombre_titulo: undefinedToNull(datos[`nombre_titulo_${i}`]),
-                    mes_terminacion: undefinedToNull(datos[`mes_terminacion_${i}`]),
-                    numero_tarjeta_profesional: undefinedToNull(datos[`numero_tarjeta_profesional_${i}`]),
-                };
-                records.push(record);
-            }
-        }
-
-        // Paso 1: Obtener todos los registros actuales asociados a la id_persona
-        const existingRecords = await pool.query('SELECT id_educacion_superior FROM educacion_superior WHERE id_persona = ?', [id_persona]);
-
-        // Asegurarse de que existingRecords sea un arreglo
-        const recordsArray = Array.isArray(existingRecords) ? existingRecords : [existingRecords].filter(Boolean);
-
-        // Convertir los IDs existentes a números
-        const existingIds = new Set(
-            recordsArray
-                .filter(record => record && record.id_educacion_superior)
-                .map(record => Number(record.id_educacion_superior)) // Convertir a número
-        );
-
-
-        // Crear un conjunto de IDs de registros enviados por el usuario
-        const sentIds = new Set();
-
-        // Paso 2: Procesar los registros enviados por el usuario
-        for (const record of records) {
-            const { id_educacion_superior, modalidad_academica, semestres_aprobados, graduado, nombre_titulo, mes_terminacion, numero_tarjeta_profesional } = record;
-
-            if (id_educacion_superior) {
-                // Si hay un ID, verificar si el registro ya existe
-                const [existingRecord] = await pool.query('SELECT 1 FROM educacion_superior WHERE id_educacion_superior = ? AND id_persona = ? LIMIT 1', [id_educacion_superior, id_persona]);
-
-                if (existingRecord.length === 0) {
-                    // Si no existe, insertar un nuevo registro con el ID proporcionado
-                    await pool.query(
-                        `INSERT INTO educacion_superior ( id_persona, modalidad_academica, semestres_aprobados, graduado, nombre_titulo, mes_terminacion, numero_tarjeta_profesional) 
-                        VALUES ( ?, ?, ?, ?, ?, ?, ?)`,
-                        [id_persona, modalidad_academica, semestres_aprobados, graduado, nombre_titulo, mes_terminacion, numero_tarjeta_profesional]
+                    // Insertar metadatos en tabla documentos
+                    const insertResult = await conn.query(
+                        `INSERT INTO documentos (id_persona, original_name, filename, mimetype, size, path) VALUES (?, ?, ?, ?, ?, ?)`,
+                        [id_persona, originalName, nombreGuardado, mimetype, size, relativePath]
                     );
-                } else {
-                    // Si existe, actualizar el registro
-                    await pool.query(
-                        `UPDATE educacion_superior 
-                        SET modalidad_academica = ?, semestres_aprobados = ?, graduado = ?, nombre_titulo = ?, mes_terminacion = ?, numero_tarjeta_profesional = ? 
-                        WHERE id_educacion_superior = ? AND id_persona = ?`,
-                        [modalidad_academica, semestres_aprobados, graduado, nombre_titulo, mes_terminacion, numero_tarjeta_profesional, id_educacion_superior, id_persona]
+
+                    // Actualizar en la tabla personas para compatibilidad con vistas antiguas
+                    await conn.query(
+                        `UPDATE personas SET nombre_original_archivo = ? WHERE id_persona = ?`,
+                        [nombreGuardado, id_persona]
                     );
+
                 }
+            }
 
-                // Agregar el ID enviado al conjunto de IDs enviados
-                sentIds.add(Number(id_educacion_superior));
+            // Actualización en tablas de uno a uno
+            await conn.query(
+                `UPDATE personas SET nombres = ?, primer_apellido = ?, segundo_apellido = ?, tipo_documento = ?, numero_documento = ?, sexo = ?, nacionalidad = ?, pais = ?, tipo_libreta_militar = ?, numero_libreta_militar = ?, dm_libreta_militar = ?, fecha_nacimiento = ?, pais_nacimiento = ?, departamento_nacimiento = ?, municipio_nacimiento = ?, direccion_correspondencia = ?, pais_correspondencia = ?, departamento_correspondencia = ?, municipio_correspondencia = ?, telefono = ?, email = ? WHERE id_persona = ?`,
+                [
+                    datos.nombres, datos.primer_apellido, datos.segundo_apellido, datos.tipo_documento, datos.numero_documento,
+                    datos.sexo, datos.nacionalidad, datos.pais, datos.tipo_libreta_militar,
+                    datos.numero_libreta_militar, datos.dm_libreta_militar, datos.fecha_nacimiento, datos.pais_nacimiento,
+                    datos.departamento_nacimiento, datos.municipio_nacimiento, datos.direccion_correspondencia,
+                    datos.pais_correspondencia, datos.departamento_correspondencia, datos.municipio_correspondencia,
+                    datos.telefono, datos.email, id_persona
+                ]
+            );
+
+            const [rowsBasica] = await conn.query(`SELECT 1 FROM educacion_basica_media WHERE id_persona = ? LIMIT 1`, [id_persona]);
+
+            if (!rowsBasica || rowsBasica.length === 0) {
+                await conn.query(
+                    `INSERT INTO educacion_basica_media (id_persona, titulo_obtenido, educacion_basica, fecha_grado) 
+                        VALUES (?, ?, ?, ?)`,
+                    [
+                        id_persona,
+                        datos.titulo_obtenido,
+                        datos.educacion_basica,
+                        datos.fecha_grado,
+                    ]
+                );
             } else {
-                // Si no hay ID, insertar un nuevo registro (el ID se generará automáticamente)
-                await pool.query(
-                    `INSERT INTO educacion_superior (id_persona, modalidad_academica, semestres_aprobados, graduado, nombre_titulo, mes_terminacion, numero_tarjeta_profesional) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                    [id_persona, modalidad_academica, semestres_aprobados, graduado, nombre_titulo, mes_terminacion, numero_tarjeta_profesional]
+                await conn.query(
+                    `UPDATE educacion_basica_media SET 
+                        titulo_obtenido = ?, 
+                        educacion_basica = ?, 
+                        fecha_grado = ?
+                        WHERE id_persona = ?`,
+                    [
+                        datos.titulo_obtenido,
+                        datos.educacion_basica,
+                        datos.fecha_grado,
+                        id_persona
+                    ]
                 );
-
-                // Paso 3: Obtener el ID del registro recién insertado
-                const [newRecord] = await pool.query(
-                    `SELECT id_educacion_superior FROM educacion_superior 
-                    WHERE id_persona = ? AND modalidad_academica = ? AND semestres_aprobados = ? AND graduado = ? AND nombre_titulo = ? AND mes_terminacion = ? AND numero_tarjeta_profesional = ? 
-                    ORDER BY id_educacion_superior DESC LIMIT 1`,
-                    [id_persona, modalidad_academica, semestres_aprobados, graduado, nombre_titulo, mes_terminacion, numero_tarjeta_profesional]
-                );
-
-                // Asegurarse de que newRecord sea un arreglo
-                const newRecordArray = Array.isArray(newRecord) ? newRecord : [newRecord].filter(Boolean);
-
-                if (newRecordArray.length > 0) {
-                    const newId = newRecordArray[0].id_educacion_superior;
-
-                    // Agregar el nuevo ID al conjunto de IDs enviados
-                    sentIds.add(newId);
-                } else {
-                    console.error('No se encontró el registro recién insertado');
-                }
             }
 
-        }
+            // Eliminación e inserción en tablas de uno a muchos
 
-        for (let i = 0; i <= 5; i++) {
-            if (
-                (req.files[`documento_educacion_superior_${i}`]) && (
+            const undefinedToNull = (value) => value === "" || value === "0" || value === undefined ? null : value;
+
+            // Tabla "educacion_basica_media"
+            // Procesar los datos dinámicamente
+            const records = [];
+            for (let i = 0; i <= 5; i++) {
+                if (
+                    (datos[`id_educacion_superior_${i}`] !== undefined && datos[`id_educacion_superior_${i}`] != '') ||
                     (datos[`modalidad_academica_${i}`] !== undefined && datos[`modalidad_academica_${i}`] != '') ||
                     (datos[`semestres_aprobados_${i}`] !== undefined && datos[`semestres_aprobados_${i}`] != '') ||
                     (datos[`graduado_${i}`] !== undefined && datos[`graduado_${i}`] != '') ||
                     (datos[`nombre_titulo_${i}`] !== undefined && datos[`nombre_titulo_${i}`] != '') ||
                     (datos[`mes_terminacion_${i}`] !== undefined && datos[`mes_terminacion_${i}`] != '') ||
                     (datos[`numero_tarjeta_profesional_${i}`] !== undefined && datos[`numero_tarjeta_profesional_${i}`] != '')
-                )) {
-                const documentoEducacionSuperiorFile = req.files[`documento_educacion_superior_${i}`][0];
-                const nombreOriginalDocumentoEducacionSuperior = documentoEducacionSuperiorFile.originalname; // Nombre original
+                ) {
+                    const record = {
+                        id_educacion_superior: undefinedToNull(datos[`id_educacion_superior_${i}`]),
+                        modalidad_academica: undefinedToNull(datos[`modalidad_academica_${i}`]),
+                        semestres_aprobados: undefinedToNull(datos[`semestres_aprobados_${i}`]),
+                        graduado: undefinedToNull(datos[`graduado_${i}`]),
+                        nombre_titulo: undefinedToNull(datos[`nombre_titulo_${i}`]),
+                        mes_terminacion: undefinedToNull(datos[`mes_terminacion_${i}`]),
+                        numero_tarjeta_profesional: undefinedToNull(datos[`numero_tarjeta_profesional_${i}`]),
+                    };
+                    records.push(record);
+                }
+            }
 
-                let condiciones = [];
-                let valores = [nombreOriginalDocumentoEducacionSuperior, id_persona];
+            // Paso 1: Obtener todos los registros actuales asociados a la id_persona
+            const existingRecords = await conn.query('SELECT id_educacion_superior FROM educacion_superior WHERE id_persona = ?', [id_persona]);
 
-                const columnas = [
-                    'modalidad_academica',
-                    'semestres_aprobados',
-                    'graduado',
-                    'nombre_titulo',
-                    'mes_terminacion',
-                    'numero_tarjeta_profesional'
-                ];
+            // Asegurarse de que existingRecords sea un arreglo
+            const recordsArray = Array.isArray(existingRecords) ? existingRecords : [existingRecords].filter(Boolean);
 
-                for (let col of columnas) {
-                    const valor = datos[`${col}_${i}`];
-                    if (valor === null || valor === undefined || valor === '') {
-                        condiciones.push(`${col} IS NULL`);
+            // Convertir los IDs existentes a números
+            const existingIds = new Set(
+                recordsArray
+                    .filter(record => record && record.id_educacion_superior)
+                    .map(record => Number(record.id_educacion_superior)) // Convertir a número
+            );
+
+
+            // Crear un conjunto de IDs de registros enviados por el usuario
+            const sentIds = new Set();
+
+            // Paso 2: Procesar los registros enviados por el usuario
+            for (const record of records) {
+                const { id_educacion_superior, modalidad_academica, semestres_aprobados, graduado, nombre_titulo, mes_terminacion, numero_tarjeta_profesional } = record;
+
+                if (id_educacion_superior) {
+                    // Si hay un ID, verificar si el registro ya existe
+                    const [existingRecord] = await conn.query('SELECT 1 FROM educacion_superior WHERE id_educacion_superior = ? AND id_persona = ? LIMIT 1', [id_educacion_superior, id_persona]);
+
+                    if (existingRecord.length === 0) {
+                        // Si no existe, insertar un nuevo registro con el ID proporcionado
+                        await conn.query(
+                            `INSERT INTO educacion_superior ( id_persona, modalidad_academica, semestres_aprobados, graduado, nombre_titulo, mes_terminacion, numero_tarjeta_profesional) 
+                            VALUES ( ?, ?, ?, ?, ?, ?, ?)`,
+                            [id_persona, modalidad_academica, semestres_aprobados, graduado, nombre_titulo, mes_terminacion, numero_tarjeta_profesional]
+                        );
                     } else {
-                        condiciones.push(`${col} = ?`);
-                        valores.push(valor);
+                        // Si existe, actualizar el registro
+                        await conn.query(
+                            `UPDATE educacion_superior 
+                            SET modalidad_academica = ?, semestres_aprobados = ?, graduado = ?, nombre_titulo = ?, mes_terminacion = ?, numero_tarjeta_profesional = ? 
+                            WHERE id_educacion_superior = ? AND id_persona = ?`,
+                            [modalidad_academica, semestres_aprobados, graduado, nombre_titulo, mes_terminacion, numero_tarjeta_profesional, id_educacion_superior, id_persona]
+                        );
+                    }
+
+                    // Agregar el ID enviado al conjunto de IDs enviados
+                    sentIds.add(Number(id_educacion_superior));
+                } else {
+                    // Si no hay ID, insertar un nuevo registro (el ID se generará automáticamente)
+                    await conn.query(
+                        `INSERT INTO educacion_superior (id_persona, modalidad_academica, semestres_aprobados, graduado, nombre_titulo, mes_terminacion, numero_tarjeta_profesional) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                        [id_persona, modalidad_academica, semestres_aprobados, graduado, nombre_titulo, mes_terminacion, numero_tarjeta_profesional]
+                    );
+
+                    // Paso 3: Obtener el ID del registro recién insertado
+                    const [newRecord] = await conn.query(
+                        `SELECT id_educacion_superior FROM educacion_superior 
+                        WHERE id_persona = ? AND modalidad_academica = ? AND semestres_aprobados = ? AND graduado = ? AND nombre_titulo = ? AND mes_terminacion = ? AND numero_tarjeta_profesional = ? 
+                        ORDER BY id_educacion_superior DESC LIMIT 1`,
+                        [id_persona, modalidad_academica, semestres_aprobados, graduado, nombre_titulo, mes_terminacion, numero_tarjeta_profesional]
+                    );
+
+                    // Asegurarse de que newRecord sea un arreglo
+                    const newRecordArray = Array.isArray(newRecord) ? newRecord : [newRecord].filter(Boolean);
+
+                    if (newRecordArray.length > 0) {
+                        const newId = newRecordArray[0].id_educacion_superior;
+
+                        // Agregar el nuevo ID al conjunto de IDs enviados
+                        sentIds.add(newId);
+                    } else {
+                        console.error('No se encontró el registro recién insertado');
                     }
                 }
 
-                const sql = `UPDATE educacion_superior SET documento = ? WHERE id_persona = ? AND ${condiciones.join(' AND ')}`;
-
-                await pool.query(sql, valores);
-
             }
-        }
 
-        // Paso 4: Eliminar los registros que el usuario ha quitado
-        const idsToDelete = Array.from(existingIds).filter(id => !sentIds.has(id)); // Convertir el Set a un arreglo
-        if (idsToDelete.length > 0) {
-            // Crear una cadena de placeholders dinámicamente
-            const placeholders = idsToDelete.map(() => '?').join(',');
+            for (let i = 0; i <= 5; i++) {
+                if (
+                    (req.files[`documento_educacion_superior_${i}`]) && (
+                        (datos[`modalidad_academica_${i}`] !== undefined && datos[`modalidad_academica_${i}`] != '') ||
+                        (datos[`semestres_aprobados_${i}`] !== undefined && datos[`semestres_aprobados_${i}`] != '') ||
+                        (datos[`graduado_${i}`] !== undefined && datos[`graduado_${i}`] != '') ||
+                        (datos[`nombre_titulo_${i}`] !== undefined && datos[`nombre_titulo_${i}`] != '') ||
+                        (datos[`mes_terminacion_${i}`] !== undefined && datos[`mes_terminacion_${i}`] != '') ||
+                        (datos[`numero_tarjeta_profesional_${i}`] !== undefined && datos[`numero_tarjeta_profesional_${i}`] != '')
+                    )) {
+                    const documentoEducacionSuperiorFile = req.files[`documento_educacion_superior_${i}`][0];
+                    const nombreGuardadoDocumentoEducacionSuperior = documentoEducacionSuperiorFile.filename; // Nombre guardado
 
-            // Construir la consulta SQL con la condición adicional
-            const query = `DELETE FROM educacion_superior WHERE id_educacion_superior IN (${placeholders}) AND id_persona = ?`;
+                    let condiciones = [];
+                    let valores = [nombreGuardadoDocumentoEducacionSuperior, id_persona];
 
-            // Combinar los valores de idsToDelete y id_persona en un solo array
-            const values = [...idsToDelete, id_persona];
+                    const columnas = [
+                        'modalidad_academica',
+                        'semestres_aprobados',
+                        'graduado',
+                        'nombre_titulo',
+                        'mes_terminacion',
+                        'numero_tarjeta_profesional'
+                    ];
 
-            // Ejecutar la consulta con los valores
-            await pool.query(query, values);
-        }
+                    for (let col of columnas) {
+                        const valor = datos[`${col}_${i}`];
+                        if (valor === null || valor === undefined || valor === '') {
+                            condiciones.push(`${col} IS NULL`);
+                        } else {
+                            condiciones.push(`${col} = ?`);
+                            valores.push(valor);
+                        }
+                    }
 
-        const recordsIdiomas = [];
-        for (let i = 0; i <= 5; i++) {
-            if (
-                (datos[`id_idioma_${i}`] !== undefined && datos[`id_idioma_${i}`] != '') ||
-                (datos[`idioma_${i}`] !== undefined && datos[`idioma_${i}`] != '') ||
-                (datos[`habla_${i}`] !== undefined && datos[`habla_${i}`] != '') ||
-                (datos[`lee_${i}`] !== undefined && datos[`lee_${i}`] != '') ||
-                (datos[`escribe_${i}`] !== undefined && datos[`escribe_${i}`] != '')
-            ) {
+                    const sql = `UPDATE educacion_superior SET documento = ? WHERE id_persona = ? AND ${condiciones.join(' AND ')}`;
 
-                const recordIdiomas = {
-                    id_idioma: undefinedToNull(datos[`id_idioma_${i}`]),
-                    idioma: undefinedToNull(datos[`idioma_${i}`]),
-                    habla: undefinedToNull(datos[`habla_${i}`]),
-                    lee: undefinedToNull(datos[`lee_${i}`]),
-                    escribe: undefinedToNull(datos[`escribe_${i}`]),
-                };
+                    await conn.query(sql, valores);
 
-                recordsIdiomas.push(recordIdiomas);
-            }
-        }
-
-
-        // Paso 1: Obtener todos los registros actuales asociados a la id_persona
-        const existingRecordsIdiomas = await pool.query('SELECT id_idioma FROM idiomas WHERE id_persona = ?', [id_persona]);
-
-        // Asegurarse de que existingRecords sea un arreglo
-        const recordsArrayIdiomas = Array.isArray(existingRecordsIdiomas) ? existingRecordsIdiomas : [existingRecordsIdiomas].filter(Boolean);
-
-        // Convertir los IDs existentes a números
-        const existingIdsIdiomas = new Set(
-            recordsArrayIdiomas
-                .filter(recordIdiomas => recordIdiomas && recordIdiomas.id_idioma)
-                .map(recordIdiomas => Number(recordIdiomas.id_idioma)) // Convertir a número
-        );
-
-
-        // Crear un conjunto de IDs de registros enviados por el usuario
-        const sentIdsIdiomas = new Set();
-
-
-        // Paso 2: Procesar los registros enviados por el usuario
-        for (const recordIdiomas of recordsIdiomas) {
-            const { id_idioma, idioma, habla, lee, escribe } = recordIdiomas;
-
-            if (id_idioma) {
-                // Si hay un ID, verificar si el registro ya existe
-                const [existingRecordIdiomas] = await pool.query('SELECT 1 FROM idiomas WHERE id_idioma = ? LIMIT 1', [id_idioma]);
-
-                if (existingRecordIdiomas.length === 0) {
-                    // Si no existe, insertar un nuevo registro con el ID proporcionado
-                    await pool.query(
-                        `INSERT INTO idiomas ( id_persona, idioma, lo_habla, lo_lee, lo_escribe) 
-                        VALUES ( ?, ?, ?, ?, ?)`,
-                        [id_persona, idioma, habla, lee, escribe]
-                    );
-                } else {
-                    // Si existe, actualizar el registro
-                    await pool.query(
-                        `UPDATE idiomas 
-                        SET idioma = ?, lo_habla = ?, lo_lee = ?, lo_escribe = ? 
-                        WHERE id_idioma = ?`,
-                        [idioma, habla, lee, escribe, id_idioma]
-                    );
-                }
-
-                // Agregar el ID enviado al conjunto de IDs enviados
-                sentIdsIdiomas.add(Number(id_idioma));
-            } else {
-                // Si no hay ID, insertar un nuevo registro (el ID se generará automáticamente)
-                await pool.query(
-                    `INSERT INTO idiomas (id_persona, idioma, lo_habla, lo_lee, lo_escribe) 
-                    VALUES (?, ?, ?, ?, ?)`,
-                    [id_persona, idioma, habla, lee, escribe]
-                );
-
-                // Paso 3: Obtener el ID del registro recién insertado
-                const [newRecordIdiomas] = await pool.query(
-                    `SELECT id_idioma FROM idiomas 
-                    WHERE id_persona = ? AND idioma = ? AND lo_habla = ? AND lo_lee = ? AND lo_escribe = ? 
-                    ORDER BY id_idioma DESC LIMIT 1`,
-                    [id_persona, idioma, habla, lee, escribe]
-                );
-
-                // Asegurarse de que newRecord sea un arreglo
-                const newRecordArrayIdiomas = Array.isArray(newRecordIdiomas) ? newRecordIdiomas : [newRecordIdiomas].filter(Boolean);
-
-                if (newRecordArrayIdiomas.length > 0) {
-                    const newId = newRecordArrayIdiomas[0].id_idioma;
-
-                    // Agregar el nuevo ID al conjunto de IDs enviados
-                    sentIdsIdiomas.add(newId);
-                } else {
-                    console.error('No se encontró el registro recién insertado');
                 }
             }
 
-        }
+            // Paso 4: Eliminar los registros que el usuario ha quitado
+            const idsToDelete = Array.from(existingIds).filter(id => !sentIds.has(id)); // Convertir el Set a un arreglo
+            if (idsToDelete.length > 0) {
+                // Crear una cadena de placeholders dinámicamente
+                const placeholders = idsToDelete.map(() => '?').join(',');
 
-        for (let i = 0; i <= 5; i++) {
-            if (
-                (req.files[`documento_idioma_${i}`]) && (
+                // Construir la consulta SQL con la condición adicional
+                const query = `DELETE FROM educacion_superior WHERE id_educacion_superior IN (${placeholders}) AND id_persona = ?`;
+
+                // Combinar los valores de idsToDelete y id_persona en un solo array
+                const values = [...idsToDelete, id_persona];
+
+                // Ejecutar la consulta con los valores
+                await conn.query(query, values);
+            }
+
+            const recordsIdiomas = [];
+            for (let i = 0; i <= 5; i++) {
+                if (
+                    (datos[`id_idioma_${i}`] !== undefined && datos[`id_idioma_${i}`] != '') ||
                     (datos[`idioma_${i}`] !== undefined && datos[`idioma_${i}`] != '') ||
                     (datos[`habla_${i}`] !== undefined && datos[`habla_${i}`] != '') ||
                     (datos[`lee_${i}`] !== undefined && datos[`lee_${i}`] != '') ||
                     (datos[`escribe_${i}`] !== undefined && datos[`escribe_${i}`] != '')
-                )) {
-                const documentoIdiomaFile = req.files[`documento_idioma_${i}`][0];
-                const nombreOriginalDocumentoIdioma = documentoIdiomaFile.originalname; // Nombre original
+                ) {
 
-                let condiciones = [];
-                let valores = [nombreOriginalDocumentoIdioma, id_persona];
+                    const recordIdiomas = {
+                        id_idioma: undefinedToNull(datos[`id_idioma_${i}`]),
+                        idioma: undefinedToNull(datos[`idioma_${i}`]),
+                        habla: undefinedToNull(datos[`habla_${i}`]),
+                        lee: undefinedToNull(datos[`lee_${i}`]),
+                        escribe: undefinedToNull(datos[`escribe_${i}`]),
+                    };
 
-                const columnas = [
-                    'idioma',
-                    'lo_habla',
-                    'lo_lee',
-                    'lo_escribe',
-                ];
+                    recordsIdiomas.push(recordIdiomas);
+                }
+            }
 
-                for (let col of columnas) {
-                    const valor = datos[`${col}_${i}`];
-                    if (valor === null || valor === undefined || valor === '') {
-                        condiciones.push(`${col} IS NULL`);
+
+            // Paso 1: Obtener todos los registros actuales asociados a la id_persona
+            const existingRecordsIdiomas = await conn.query('SELECT id_idioma FROM idiomas WHERE id_persona = ?', [id_persona]);
+
+            // Asegurarse de que existingRecords sea un arreglo
+            const recordsArrayIdiomas = Array.isArray(existingRecordsIdiomas) ? existingRecordsIdiomas : [existingRecordsIdiomas].filter(Boolean);
+
+            // Convertir los IDs existentes a números
+            const existingIdsIdiomas = new Set(
+                recordsArrayIdiomas
+                    .filter(recordIdiomas => recordIdiomas && recordIdiomas.id_idioma)
+                    .map(recordIdiomas => Number(recordIdiomas.id_idioma)) // Convertir a número
+            );
+
+
+            // Crear un conjunto de IDs de registros enviados por el usuario
+            const sentIdsIdiomas = new Set();
+
+
+            // Paso 2: Procesar los registros enviados por el usuario
+            for (const recordIdiomas of recordsIdiomas) {
+                const { id_idioma, idioma, habla, lee, escribe } = recordIdiomas;
+
+                if (id_idioma) {
+                    // Si hay un ID, verificar si el registro ya existe
+                    const [existingRecordIdiomas] = await conn.query('SELECT 1 FROM idiomas WHERE id_idioma = ? LIMIT 1', [id_idioma]);
+
+                    if (existingRecordIdiomas.length === 0) {
+                        // Si no existe, insertar un nuevo registro con el ID proporcionado
+                        await conn.query(
+                            `INSERT INTO idiomas ( id_persona, idioma, lo_habla, lo_lee, lo_escribe) 
+                            VALUES ( ?, ?, ?, ?, ?)`,
+                            [id_persona, idioma, habla, lee, escribe]
+                        );
                     } else {
-                        condiciones.push(`${col} = ?`);
-                        valores.push(valor);
+                        // Si existe, actualizar el registro
+                        await conn.query(
+                            `UPDATE idiomas 
+                            SET idioma = ?, lo_habla = ?, lo_lee = ?, lo_escribe = ? 
+                            WHERE id_idioma = ?`,
+                            [idioma, habla, lee, escribe, id_idioma]
+                        );
+                    }
+
+                    // Agregar el ID enviado al conjunto de IDs enviados
+                    sentIdsIdiomas.add(Number(id_idioma));
+                } else {
+                    // Si no hay ID, insertar un nuevo registro (el ID se generará automáticamente)
+                    await conn.query(
+                        `INSERT INTO idiomas (id_persona, idioma, lo_habla, lo_lee, lo_escribe) 
+                        VALUES (?, ?, ?, ?, ?)`,
+                        [id_persona, idioma, habla, lee, escribe]
+                    );
+
+                    // Paso 3: Obtener el ID del registro recién insertado
+                    const [newRecordIdiomas] = await conn.query(
+                        `SELECT id_idioma FROM idiomas 
+                        WHERE id_persona = ? AND idioma = ? AND lo_habla = ? AND lo_lee = ? AND lo_escribe = ? 
+                        ORDER BY id_idioma DESC LIMIT 1`,
+                        [id_persona, idioma, habla, lee, escribe]
+                    );
+
+                    // Asegurarse de que newRecord sea un arreglo
+                    const newRecordArrayIdiomas = Array.isArray(newRecordIdiomas) ? newRecordIdiomas : [newRecordIdiomas].filter(Boolean);
+
+                    if (newRecordArrayIdiomas.length > 0) {
+                        const newId = newRecordArrayIdiomas[0].id_idioma;
+
+                        // Agregar el nuevo ID al conjunto de IDs enviados
+                        sentIdsIdiomas.add(newId);
+                    } else {
+                        console.error('No se encontró el registro recién insertado');
                     }
                 }
 
-                const sql = `UPDATE idiomas SET documento = ? WHERE id_persona = ? AND ${condiciones.join(' AND ')}`;
-
-                await pool.query(sql, valores);
-
             }
-        }
 
-        // Paso 4: Eliminar los registros que el usuario ha quitado
-        const idsToDeleteIdiomas = Array.from(existingIdsIdiomas).filter(id => !sentIdsIdiomas.has(id)); // Convertir el Set a un arreglo
-        if (idsToDeleteIdiomas.length > 0) {
+            for (let i = 0; i <= 5; i++) {
+                if (
+                    (req.files[`documento_idioma_${i}`]) && (
+                        (datos[`idioma_${i}`] !== undefined && datos[`idioma_${i}`] != '') ||
+                        (datos[`habla_${i}`] !== undefined && datos[`habla_${i}`] != '') ||
+                        (datos[`lee_${i}`] !== undefined && datos[`lee_${i}`] != '') ||
+                        (datos[`escribe_${i}`] !== undefined && datos[`escribe_${i}`] != '')
+                    )) {
+                    const documentoIdiomaFile = req.files[`documento_idioma_${i}`][0];
+                    const nombreGuardadoDocumentoIdioma = documentoIdiomaFile.filename; // Nombre guardado
 
-            // Crear una cadena de placeholders dinámicamente
-            const placeholders = idsToDeleteIdiomas.map(() => '?').join(',');
+                    let condiciones = [];
+                    let valores = [nombreGuardadoDocumentoIdioma, id_persona];
 
-            // Construir la consulta SQL
-            const query = `DELETE FROM idiomas WHERE id_idioma IN (${placeholders}) AND id_persona = ?`;
+                    const columnas = [
+                        'idioma',
+                        'lo_habla',
+                        'lo_lee',
+                        'lo_escribe',
+                    ];
 
-            const values = [...idsToDeleteIdiomas, id_persona];
+                    for (let col of columnas) {
+                        const valor = datos[`${col}_${i}`];
+                        if (valor === null || valor === undefined || valor === '') {
+                            condiciones.push(`${col} IS NULL`);
+                        } else {
+                            condiciones.push(`${col} = ?`);
+                            valores.push(valor);
+                        }
+                    }
 
-            // Ejecutar la consulta con los valores
-            await pool.query(query, values);
+                    const sql = `UPDATE idiomas SET documento = ? WHERE id_persona = ? AND ${condiciones.join(' AND ')}`;
 
-        }
+                    await conn.query(sql, valores);
 
-        const recordsExperiencia = [];
-        for (let i = 0; i <= 5; i++) {
-            if (
-                (datos[`id_experiencia_${i}`] !== undefined && datos[`id_experiencia_${i}`] != '') ||
-                (datos[`empresa_entidad_${i}`] !== undefined && datos[`empresa_entidad_${i}`] != '') ||
-                (datos[`tipo_${i}`] !== undefined && datos[`tipo_${i}`] != '') ||
-                (datos[`pais_${i}`] !== undefined && datos[`pais_${i}`] != '') ||
-                (datos[`departamento_${i}`] !== undefined && datos[`departamento_${i}`] != '') ||
-                (datos[`municipio_${i}`] !== undefined && datos[`municipio_${i}`] != '') ||
-                (datos[`correo_entidad_${i}`] !== undefined && datos[`correo_entidad_${i}`] != '') ||
-                (datos[`telefono_entidad_${i}`] !== undefined && datos[`telefono_entidad_${i}`] != '') ||
-                (datos[`fecha_ingreso_${i}`] !== undefined && datos[`fecha_ingreso_${i}`] != '') ||
-                (datos[`fecha_retiro_${i}`] !== undefined && datos[`fecha_retiro_${i}`] != '') ||
-                (datos[`cargo_actual_${i}`] !== undefined && datos[`cargo_actual_${i}`] != '') ||
-                (datos[`dependencia_${i}`] !== undefined && datos[`dependencia_${i}`] != '') ||
-                (datos[`direccion_${i}`] !== undefined && datos[`direccion_${i}`] != '')
-            ) {
-                const recordExperiencia = {
-                    id_experiencia: undefinedToNull(datos[`id_experiencia_${i}`]),
-                    empleo_actual: undefinedToNull(datos[`empleo_actual_${i}`]),
-                    empresa_entidad: undefinedToNull(datos[`empresa_entidad_${i}`]),
-                    tipo: undefinedToNull(datos[`tipo_${i}`]),
-                    pais: undefinedToNull(datos[`pais_${i}`]),
-                    departamento: undefinedToNull(datos[`departamento_${i}`]),
-                    municipio: undefinedToNull(datos[`municipio_${i}`]),
-                    correo_entidad: undefinedToNull(datos[`correo_entidad_${i}`]),
-                    telefono_entidad: undefinedToNull(datos[`telefono_entidad_${i}`]),
-                    fecha_ingreso: undefinedToNull(datos[`fecha_ingreso_${i}`]),
-                    fecha_retiro: undefinedToNull(datos[`fecha_retiro_${i}`]),
-                    cargo_actual: undefinedToNull(datos[`cargo_actual_${i}`]),
-                    dependencia: undefinedToNull(datos[`dependencia_${i}`]),
-                    direccion: undefinedToNull(datos[`direccion_${i}`]),
-                };
-                recordsExperiencia.push(recordExperiencia);
-            }
-        }
-
-        // Paso 1: Obtener todos los registros actuales asociados a la id_persona
-        const existingRecordsExperiencia = await pool.query('SELECT id_experiencia FROM experiencia_laboral WHERE id_persona = ?', [id_persona]);
-
-        // Asegurarse de que existingRecords sea un arreglo
-        const recordsArrayExperiencia = Array.isArray(existingRecordsExperiencia) ? existingRecordsExperiencia : [existingRecordsExperiencia].filter(Boolean);
-
-        // Convertir los IDs existentes a números
-        const existingIdsExperiencia = new Set(
-            recordsArrayExperiencia
-                .filter(recordExperiencia => recordExperiencia && recordExperiencia.id_experiencia)
-                .map(recordExperiencia => Number(recordExperiencia.id_experiencia)) // Convertir a número
-        );
-
-
-        // Crear un conjunto de IDs de registros enviados por el usuario
-        const sentIdsExperiencia = new Set();
-
-
-        // Paso 2: Procesar los registros enviados por el usuario
-        for (const recordExperiencia of recordsExperiencia) {
-            const { id_experiencia, empleo_actual, empresa_entidad, tipo, pais, departamento, municipio, correo_entidad, telefono_entidad, fecha_ingreso, fecha_retiro, cargo_actual, dependencia, direccion } = recordExperiencia;
-
-            if (id_experiencia) {
-                // Si hay un ID, verificar si el registro ya existe
-                const [existingRecordExperiencia] = await pool.query('SELECT 1 FROM experiencia_laboral WHERE id_experiencia = ? LIMIT 1', [id_experiencia]);
-
-                if (existingRecordExperiencia.length === 0) {
-                    // Si no existe, insertar un nuevo registro con el ID proporcionado
-                    await pool.query(
-                        `INSERT INTO experiencia_laboral ( id_persona, empleo_actual, empresa_entidad, tipo, pais, departamento, municipio, correo_entidad, telefono_entidad, fecha_ingreso, fecha_retiro, cargo_actual, dependencia, direccion) 
-                        VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                        [id_persona, empleo_actual, empresa_entidad, tipo, pais, departamento, municipio, correo_entidad, telefono_entidad, fecha_ingreso, fecha_retiro, cargo_actual, dependencia, direccion]
-                    );
-                } else {
-                    // Si existe, actualizar el registro
-                    await pool.query(
-                        `UPDATE experiencia_laboral
-                        SET empleo_actual = ?, empresa_entidad = ?, tipo = ?, pais = ?, departamento = ?, municipio = ?, correo_entidad = ?, telefono_entidad = ?, fecha_ingreso = ?, fecha_retiro = ?, cargo_actual = ?, dependencia = ?, direccion = ?
-                        WHERE id_experiencia = ?`,
-                        [empleo_actual, empresa_entidad, tipo, pais, departamento, municipio, correo_entidad, telefono_entidad, fecha_ingreso, fecha_retiro, cargo_actual, dependencia, direccion, id_experiencia]
-                    );
-                }
-
-                // Agregar el ID enviado al conjunto de IDs enviados
-                sentIdsExperiencia.add(Number(id_experiencia));
-            } else {
-                // Si no hay ID, insertar un nuevo registro (el ID se generará automáticamente)
-                await pool.query(
-                    `INSERT INTO experiencia_laboral (id_persona, empleo_actual, empresa_entidad, tipo, pais, departamento, municipio, correo_entidad, telefono_entidad, fecha_ingreso, fecha_retiro, cargo_actual, dependencia, direccion) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                    [id_persona, empleo_actual, empresa_entidad, tipo, pais, departamento, municipio, correo_entidad, telefono_entidad, fecha_ingreso, fecha_retiro, cargo_actual, dependencia, direccion]
-                );
-
-                // Paso 3: Obtener el ID del registro recién insertado
-                const [newRecordExperiencia] = await pool.query(
-                    `SELECT id_experiencia FROM experiencia_laboral 
-                    WHERE id_persona = ? AND empleo_actual = ? AND empresa_entidad = ? AND tipo = ? AND pais = ? AND departamento = ? AND municipio = ? AND correo_entidad = ? AND telefono_entidad = ? AND fecha_ingreso = ? AND fecha_retiro = ? AND cargo_actual = ? AND dependencia = ? AND direccion = ?
-                    ORDER BY id_experiencia DESC LIMIT 1`,
-                    [id_persona, empleo_actual, empresa_entidad, tipo, pais, departamento, municipio, correo_entidad, telefono_entidad, fecha_ingreso, fecha_retiro, cargo_actual, dependencia, direccion]
-                );
-
-                // Asegurarse de que newRecord sea un arreglo
-                const newRecordArrayExperiencia = Array.isArray(newRecordExperiencia) ? newRecordExperiencia : [newRecordExperiencia].filter(Boolean);
-
-                if (newRecordArrayExperiencia.length > 0) {
-                    const newId = newRecordArrayExperiencia[0].id_experiencia;
-
-                    // Agregar el nuevo ID al conjunto de IDs enviados
-                    sentIdsExperiencia.add(newId);
-                } else {
-                    console.error('No se encontró el registro recién insertado');
                 }
             }
-        }
 
-        for (let i = 0; i <= 5; i++) {
-            if (
-                (req.files[`documento_experiencia_${i}`]) && (
-                    (datos[`empleo_actual_${i}`] !== undefined && datos[`empleo_actual_${i}`] != '') ||
+            // Paso 4: Eliminar los registros que el usuario ha quitado
+            const idsToDeleteIdiomas = Array.from(existingIdsIdiomas).filter(id => !sentIdsIdiomas.has(id)); // Convertir el Set a un arreglo
+            if (idsToDeleteIdiomas.length > 0) {
+
+                // Crear una cadena de placeholders dinámicamente
+                const placeholders = idsToDeleteIdiomas.map(() => '?').join(',');
+
+                // Construir la consulta SQL
+                const query = `DELETE FROM idiomas WHERE id_idioma IN (${placeholders}) AND id_persona = ?`;
+
+                const values = [...idsToDeleteIdiomas, id_persona];
+
+                // Ejecutar la consulta con los valores
+                await conn.query(query, values);
+
+            }
+
+            const recordsExperiencia = [];
+            for (let i = 0; i <= 5; i++) {
+                if (
+                    (datos[`id_experiencia_${i}`] !== undefined && datos[`id_experiencia_${i}`] != '') ||
                     (datos[`empresa_entidad_${i}`] !== undefined && datos[`empresa_entidad_${i}`] != '') ||
                     (datos[`tipo_${i}`] !== undefined && datos[`tipo_${i}`] != '') ||
                     (datos[`pais_${i}`] !== undefined && datos[`pais_${i}`] != '') ||
@@ -592,107 +541,220 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
                     (datos[`cargo_actual_${i}`] !== undefined && datos[`cargo_actual_${i}`] != '') ||
                     (datos[`dependencia_${i}`] !== undefined && datos[`dependencia_${i}`] != '') ||
                     (datos[`direccion_${i}`] !== undefined && datos[`direccion_${i}`] != '')
-                )) {
+                ) {
+                    const recordExperiencia = {
+                        id_experiencia: undefinedToNull(datos[`id_experiencia_${i}`]),
+                        empleo_actual: undefinedToNull(datos[`empleo_actual_${i}`]),
+                        empresa_entidad: undefinedToNull(datos[`empresa_entidad_${i}`]),
+                        tipo: undefinedToNull(datos[`tipo_${i}`]),
+                        pais: undefinedToNull(datos[`pais_${i}`]),
+                        departamento: undefinedToNull(datos[`departamento_${i}`]),
+                        municipio: undefinedToNull(datos[`municipio_${i}`]),
+                        correo_entidad: undefinedToNull(datos[`correo_entidad_${i}`]),
+                        telefono_entidad: undefinedToNull(datos[`telefono_entidad_${i}`]),
+                        fecha_ingreso: undefinedToNull(datos[`fecha_ingreso_${i}`]),
+                        fecha_retiro: undefinedToNull(datos[`fecha_retiro_${i}`]),
+                        cargo_actual: undefinedToNull(datos[`cargo_actual_${i}`]),
+                        dependencia: undefinedToNull(datos[`dependencia_${i}`]),
+                        direccion: undefinedToNull(datos[`direccion_${i}`]),
+                    };
+                    recordsExperiencia.push(recordExperiencia);
+                }
+            }
 
-                const documentoIdiomaFile = req.files[`documento_experiencia_${i}`][0];
-                const nombreOriginalDocumentoExperiencia = documentoIdiomaFile.originalname; // Nombre original
+            // Paso 1: Obtener todos los registros actuales asociados a la id_persona
+            const existingRecordsExperiencia = await conn.query('SELECT id_experiencia FROM experiencia_laboral WHERE id_persona = ?', [id_persona]);
 
-                let condiciones = [];
-                let valores = [nombreOriginalDocumentoExperiencia, id_persona];
+            // Asegurarse de que existingRecords sea un arreglo
+            const recordsArrayExperiencia = Array.isArray(existingRecordsExperiencia) ? existingRecordsExperiencia : [existingRecordsExperiencia].filter(Boolean);
 
-                const columnas = [
-                    'empleo_actual',
-                    'empresa_entidad',
-                    'tipo',
-                    'pais',
-                    'departamento',
-                    'municipio',
-                    'correo_entidad',
-                    'telefono_entidad',
-                    'fecha_ingreso',
-                    'fecha_retiro',
-                    'cargo_actual',
-                    'dependencia',
-                    'direccion'
-                ];
+            // Convertir los IDs existentes a números
+            const existingIdsExperiencia = new Set(
+                recordsArrayExperiencia
+                    .filter(recordExperiencia => recordExperiencia && recordExperiencia.id_experiencia)
+                    .map(recordExperiencia => Number(recordExperiencia.id_experiencia)) // Convertir a número
+            );
 
-                for (let col of columnas) {
-                    const valor = datos[`${col}_${i}`];
-                    if (valor === null || valor === undefined || valor === '') {
-                        condiciones.push(`${col} IS NULL`);
+
+            // Crear un conjunto de IDs de registros enviados por el usuario
+            const sentIdsExperiencia = new Set();
+
+
+            // Paso 2: Procesar los registros enviados por el usuario
+            for (const recordExperiencia of recordsExperiencia) {
+                const { id_experiencia, empleo_actual, empresa_entidad, tipo, pais, departamento, municipio, correo_entidad, telefono_entidad, fecha_ingreso, fecha_retiro, cargo_actual, dependencia, direccion } = recordExperiencia;
+
+                if (id_experiencia) {
+                    // Si hay un ID, verificar si el registro ya existe
+                    const [existingRecordExperiencia] = await conn.query('SELECT 1 FROM experiencia_laboral WHERE id_experiencia = ? LIMIT 1', [id_experiencia]);
+
+                    if (existingRecordExperiencia.length === 0) {
+                        // Si no existe, insertar un nuevo registro con el ID proporcionado
+                        await conn.query(
+                            `INSERT INTO experiencia_laboral ( id_persona, empleo_actual, empresa_entidad, tipo, pais, departamento, municipio, correo_entidad, telefono_entidad, fecha_ingreso, fecha_retiro, cargo_actual, dependencia, direccion) 
+                            VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                            [id_persona, empleo_actual, empresa_entidad, tipo, pais, departamento, municipio, correo_entidad, telefono_entidad, fecha_ingreso, fecha_retiro, cargo_actual, dependencia, direccion]
+                        );
                     } else {
-                        condiciones.push(`${col} = ?`);
-                        valores.push(valor);
+                        // Si existe, actualizar el registro
+                        await conn.query(
+                            `UPDATE experiencia_laboral
+                            SET empleo_actual = ?, empresa_entidad = ?, tipo = ?, pais = ?, departamento = ?, municipio = ?, correo_entidad = ?, telefono_entidad = ?, fecha_ingreso = ?, fecha_retiro = ?, cargo_actual = ?, dependencia = ?, direccion = ?
+                            WHERE id_experiencia = ?`,
+                            [empleo_actual, empresa_entidad, tipo, pais, departamento, municipio, correo_entidad, telefono_entidad, fecha_ingreso, fecha_retiro, cargo_actual, dependencia, direccion, id_experiencia]
+                        );
+                    }
+
+                    // Agregar el ID enviado al conjunto de IDs enviados
+                    sentIdsExperiencia.add(Number(id_experiencia));
+                } else {
+                    // Si no hay ID, insertar un nuevo registro (el ID se generará automáticamente)
+                    await conn.query(
+                        `INSERT INTO experiencia_laboral (id_persona, empleo_actual, empresa_entidad, tipo, pais, departamento, municipio, correo_entidad, telefono_entidad, fecha_ingreso, fecha_retiro, cargo_actual, dependencia, direccion) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                        [id_persona, empleo_actual, empresa_entidad, tipo, pais, departamento, municipio, correo_entidad, telefono_entidad, fecha_ingreso, fecha_retiro, cargo_actual, dependencia, direccion]
+                    );
+
+                    // Paso 3: Obtener el ID del registro recién insertado
+                    const [newRecordExperiencia] = await conn.query(
+                        `SELECT id_experiencia FROM experiencia_laboral 
+                        WHERE id_persona = ? AND empleo_actual = ? AND empresa_entidad = ? AND tipo = ? AND pais = ? AND departamento = ? AND municipio = ? AND correo_entidad = ? AND telefono_entidad = ? AND fecha_ingreso = ? AND fecha_retiro = ? AND cargo_actual = ? AND dependencia = ? AND direccion = ?
+                        ORDER BY id_experiencia DESC LIMIT 1`,
+                        [id_persona, empleo_actual, empresa_entidad, tipo, pais, departamento, municipio, correo_entidad, telefono_entidad, fecha_ingreso, fecha_retiro, cargo_actual, dependencia, direccion]
+                    );
+
+                    // Asegurarse de que newRecord sea un arreglo
+                    const newRecordArrayExperiencia = Array.isArray(newRecordExperiencia) ? newRecordExperiencia : [newRecordExperiencia].filter(Boolean);
+
+                    if (newRecordArrayExperiencia.length > 0) {
+                        const newId = newRecordArrayExperiencia[0].id_experiencia;
+
+                        // Agregar el nuevo ID al conjunto de IDs enviados
+                        sentIdsExperiencia.add(newId);
+                    } else {
+                        console.error('No se encontró el registro recién insertado');
                     }
                 }
+            }
 
-                const sql = `UPDATE experiencia_laboral SET documento = ? WHERE id_persona = ? AND ${condiciones.join(' AND ')}`;
+            for (let i = 0; i <= 5; i++) {
+                if (
+                    (req.files[`documento_experiencia_${i}`]) && (
+                        (datos[`empleo_actual_${i}`] !== undefined && datos[`empleo_actual_${i}`] != '') ||
+                        (datos[`empresa_entidad_${i}`] !== undefined && datos[`empresa_entidad_${i}`] != '') ||
+                        (datos[`tipo_${i}`] !== undefined && datos[`tipo_${i}`] != '') ||
+                        (datos[`pais_${i}`] !== undefined && datos[`pais_${i}`] != '') ||
+                        (datos[`departamento_${i}`] !== undefined && datos[`departamento_${i}`] != '') ||
+                        (datos[`municipio_${i}`] !== undefined && datos[`municipio_${i}`] != '') ||
+                        (datos[`correo_entidad_${i}`] !== undefined && datos[`correo_entidad_${i}`] != '') ||
+                        (datos[`telefono_entidad_${i}`] !== undefined && datos[`telefono_entidad_${i}`] != '') ||
+                        (datos[`fecha_ingreso_${i}`] !== undefined && datos[`fecha_ingreso_${i}`] != '') ||
+                        (datos[`fecha_retiro_${i}`] !== undefined && datos[`fecha_retiro_${i}`] != '') ||
+                        (datos[`cargo_actual_${i}`] !== undefined && datos[`cargo_actual_${i}`] != '') ||
+                        (datos[`dependencia_${i}`] !== undefined && datos[`dependencia_${i}`] != '') ||
+                        (datos[`direccion_${i}`] !== undefined && datos[`direccion_${i}`] != '')
+                    )) {
 
-                await pool.query(sql, valores);
+                    const documentoIdiomaFile = req.files[`documento_experiencia_${i}`][0];
+                    const nombreGuardadoDocumentoExperiencia = documentoIdiomaFile.filename; // Nombre guardado
+
+                    let condiciones = [];
+                    let valores = [nombreGuardadoDocumentoExperiencia, id_persona];
+
+                    const columnas = [
+                        'empleo_actual',
+                        'empresa_entidad',
+                        'tipo',
+                        'pais',
+                        'departamento',
+                        'municipio',
+                        'correo_entidad',
+                        'telefono_entidad',
+                        'fecha_ingreso',
+                        'fecha_retiro',
+                        'cargo_actual',
+                        'dependencia',
+                        'direccion'
+                    ];
+
+                    for (let col of columnas) {
+                        const valor = datos[`${col}_${i}`];
+                        if (valor === null || valor === undefined || valor === '') {
+                            condiciones.push(`${col} IS NULL`);
+                        } else {
+                            condiciones.push(`${col} = ?`);
+                            valores.push(valor);
+                        }
+                    }
+
+                    const sql = `UPDATE experiencia_laboral SET documento = ? WHERE id_persona = ? AND ${condiciones.join(' AND ')}`;
+
+                    await conn.query(sql, valores);
+
+                }
+            }
+
+            // Paso 4: Eliminar los registros que el usuario ha quitado
+            const idsToDeleteExperiencia = Array.from(existingIdsExperiencia).filter(id => !sentIdsExperiencia.has(id)); // Convertir el Set a un arreglo
+            if (idsToDeleteExperiencia.length > 0) {
+
+                // Crear una cadena de placeholders dinámicamente
+                const placeholders = idsToDeleteExperiencia.map(() => '?').join(',');
+
+                // Construir la consulta SQL
+                const query = `DELETE FROM experiencia_laboral WHERE id_experiencia IN (${placeholders}) AND id_persona = ?`;
+
+                const values = [...idsToDeleteExperiencia, id_persona];
+
+                // Ejecutar la consulta con los valores
+                await conn.query(query, values);
 
             }
-        }
 
-        // Paso 4: Eliminar los registros que el usuario ha quitado
-        const idsToDeleteExperiencia = Array.from(existingIdsExperiencia).filter(id => !sentIdsExperiencia.has(id)); // Convertir el Set a un arreglo
-        if (idsToDeleteExperiencia.length > 0) {
+            const [rows] = await conn.query(`SELECT 1 FROM tiempo_experiencia WHERE id_persona = ? LIMIT 1`, [id_persona]);
 
-            // Crear una cadena de placeholders dinámicamente
-            const placeholders = idsToDeleteExperiencia.map(() => '?').join(',');
-
-            // Construir la consulta SQL
-            const query = `DELETE FROM experiencia_laboral WHERE id_experiencia IN (${placeholders}) AND id_persona = ?`;
-
-            const values = [...idsToDeleteExperiencia, id_persona];
-
-            // Ejecutar la consulta con los valores
-            await pool.query(query, values);
-
-        }
-
-        const [rows] = await pool.query(`SELECT 1 FROM tiempo_experiencia WHERE id_persona = ? LIMIT 1`, [id_persona]);
-
-        if (!rows || rows.length === 0) {
-            await pool.query(
-                `INSERT INTO tiempo_experiencia (id_persona, anios_servidor_publico, meses_servidor_publico, anios_sector_privado, meses_sector_privado, anios_trabajador_independiente, meses_trabajador_independiente, anios_total_experiencia, meses_total_experiencia) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [
-                    id_persona,
-                    datos.anios_servidor_publico,
-                    datos.meses_servidor_publico,
-                    datos.anios_sector_privado,
-                    datos.meses_sector_privado,
-                    datos.anios_trabajador_independiente,
-                    datos.meses_trabajador_independiente,
-                    datos.anios_total_experiencia,
-                    datos.meses_total_experiencia,
-                ]
-            );
-        } else {
-            await pool.query(
-                `UPDATE tiempo_experiencia SET 
-                    anios_servidor_publico = ?, 
-                    meses_servidor_publico = ?, 
-                    anios_sector_privado = ?, 
-                    meses_sector_privado = ?, 
-                    anios_trabajador_independiente = ?, 
-                    meses_trabajador_independiente = ?, 
-                    anios_total_experiencia = ?, 
-                    meses_total_experiencia = ? 
-                    WHERE id_persona = ?`,
-                [
-                    datos.anios_servidor_publico,
-                    datos.meses_servidor_publico,
-                    datos.anios_sector_privado,
-                    datos.meses_sector_privado,
-                    datos.anios_trabajador_independiente,
-                    datos.meses_trabajador_independiente,
-                    datos.anios_total_experiencia,
-                    datos.meses_total_experiencia,
-                    id_persona
-                ]
-            );
-        }
+            if (!rows || rows.length === 0) {
+                await conn.query(
+                    `INSERT INTO tiempo_experiencia (id_persona, anios_servidor_publico, meses_servidor_publico, anios_sector_privado, meses_sector_privado, anios_trabajador_independiente, meses_trabajador_independiente, anios_total_experiencia, meses_total_experiencia) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [
+                        id_persona,
+                        datos.anios_servidor_publico,
+                        datos.meses_servidor_publico,
+                        datos.anios_sector_privado,
+                        datos.meses_sector_privado,
+                        datos.anios_trabajador_independiente,
+                        datos.meses_trabajador_independiente,
+                        datos.anios_total_experiencia,
+                        datos.meses_total_experiencia,
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE tiempo_experiencia SET 
+                        anios_servidor_publico = ?, 
+                        meses_servidor_publico = ?, 
+                        anios_sector_privado = ?, 
+                        meses_sector_privado = ?, 
+                        anios_trabajador_independiente = ?, 
+                        meses_trabajador_independiente = ?, 
+                        anios_total_experiencia = ?, 
+                        meses_total_experiencia = ? 
+                        WHERE id_persona = ?`,
+                    [
+                        datos.anios_servidor_publico,
+                        datos.meses_servidor_publico,
+                        datos.anios_sector_privado,
+                        datos.meses_sector_privado,
+                        datos.anios_trabajador_independiente,
+                        datos.meses_trabajador_independiente,
+                        datos.anios_total_experiencia,
+                        datos.meses_total_experiencia,
+                        id_persona
+                    ]
+                );
+            }
+        });
         res.redirect('/hoja/add');
     } catch (error) {
         console.error('Error al actualizar datos:', error);
@@ -703,11 +765,11 @@ router.post('/insertar-datos', isLoggedIn, upload.fields([{ name: 'documento_id'
 router.get('/generar-pdf', isLoggedIn, async (req, res) => {
     try {
         // Obtener los datos de la base de datos
-        const idiomas = await pool.query('SELECT * FROM idiomas WHERE id_persona = ?', [req.user.id_persona]);
-        const educacion_basica_media = (await pool.query('SELECT * FROM educacion_basica_media WHERE id_persona = ?', [req.user.id_persona]))[0] || {};
-        const educacion_superior = await pool.query('SELECT * FROM educacion_superior WHERE id_persona = ?', [req.user.id_persona]);
-        const tiempo_experiencia = (await pool.query('SELECT * FROM tiempo_experiencia WHERE id_persona = ?', [req.user.id_persona]))[0] || {};
-        const empleos = await pool.query('SELECT * FROM experiencia_laboral WHERE id_persona = ?', [req.user.id_persona]);
+        const idiomas = await db.query('SELECT * FROM idiomas WHERE id_persona = ?', [req.user.id_persona]);
+        const educacion_basica_media = (await db.query('SELECT * FROM educacion_basica_media WHERE id_persona = ?', [req.user.id_persona]))[0] || {};
+        const educacion_superior = await db.query('SELECT * FROM educacion_superior WHERE id_persona = ?', [req.user.id_persona]);
+        const tiempo_experiencia = (await db.query('SELECT * FROM tiempo_experiencia WHERE id_persona = ?', [req.user.id_persona]))[0] || {};
+        const empleos = await db.query('SELECT * FROM experiencia_laboral WHERE id_persona = ?', [req.user.id_persona]);
         const empleoActual = empleos.find(empleo => empleo.empleo_actual === 'SI') || null;
         const empleosAnteriores = empleos.filter(empleo => empleo.empleo_actual === 'NO');
 
@@ -875,17 +937,17 @@ router.get('/generar-pdf', isLoggedIn, async (req, res) => {
 
 router.get('/generar-pdf/:unique_identifier', async (req, res) => {
     const { unique_identifier } = req.params;
-    const persona = (await pool.query('SELECT * FROM personas WHERE unique_identifier = ?', [unique_identifier]))[0];
+    const persona = (await db.query('SELECT * FROM personas WHERE unique_identifier = ?', [unique_identifier]))[0];
     if (!persona) {
         return res.status(404).send('Persona no encontrada');
     }
     try {
         // Obtener los datos de la base de datos
-        const idiomas = await pool.query('SELECT * FROM idiomas WHERE id_persona = ?', [persona.id_persona]);
-        const educacion_basica_media = (await pool.query('SELECT * FROM educacion_basica_media WHERE id_persona = ?', [persona.id_persona]))[0] || {};
-        const educacion_superior = await pool.query('SELECT * FROM educacion_superior WHERE id_persona = ?', [persona.id_persona]);
-        const tiempo_experiencia = (await pool.query('SELECT * FROM tiempo_experiencia WHERE id_persona = ?', [persona.id_persona]))[0] || {};
-        const empleos = await pool.query('SELECT * FROM experiencia_laboral WHERE id_persona = ?', [persona.id_persona]);
+        const idiomas = await db.query('SELECT * FROM idiomas WHERE id_persona = ?', [persona.id_persona]);
+        const educacion_basica_media = (await db.query('SELECT * FROM educacion_basica_media WHERE id_persona = ?', [persona.id_persona]))[0] || {};
+        const educacion_superior = await db.query('SELECT * FROM educacion_superior WHERE id_persona = ?', [persona.id_persona]);
+        const tiempo_experiencia = (await db.query('SELECT * FROM tiempo_experiencia WHERE id_persona = ?', [persona.id_persona]))[0] || {};
+        const empleos = await db.query('SELECT * FROM experiencia_laboral WHERE id_persona = ?', [persona.id_persona]);
         const empleoActual = empleos.find(empleo => empleo.empleo_actual === 'SI') || null;
         const empleosAnteriores = empleos.filter(empleo => empleo.empleo_actual === 'NO');
 
@@ -1049,6 +1111,84 @@ router.get('/generar-pdf/:unique_identifier', async (req, res) => {
         console.error('Error al generar el PDF:', error);
         res.status(500).send('Error al generar el PDF');
     }
+});
+
+// Preview inline (for PDFs/images)
+router.get('/documento/:id/preview', isLoggedIn, async (req, res) => {
+  const id = req.params.id;
+  try {
+    const rows = await db.query('SELECT * FROM documentos WHERE id_documento = ? LIMIT 1', [id]);
+    if (!rows || rows.length === 0) return res.status(404).send('Documento no encontrado');
+    const doc = rows[0];
+    if (doc.id_persona !== req.user.id_persona && req.user.admin !== 'SI') return res.status(403).send('No autorizado');
+    const filePath = path.join(__dirname, '..', 'docs', doc.filename);
+    const stat = fs.statSync(filePath);
+    const mime = doc.mimetype || 'application/octet-stream';
+    res.setHeader('Content-Type', mime);
+    res.setHeader('Content-Length', stat.size);
+    // inline disposition
+    res.setHeader('Content-Disposition', `inline; filename="${doc.original_name}"`);
+    const stream = fs.createReadStream(filePath);
+    stream.pipe(res);
+  } catch (err) {
+    console.error('Error al previsualizar documento:', err);
+    res.status(500).send('Error al previsualizar documento');
+  }
+});
+
+// Delete document
+router.post('/documento/:id/delete', isLoggedIn, async (req, res) => {
+  const id = req.params.id;
+  try {
+    await db.withTransaction(async (conn) => {
+      const rows = await conn.query('SELECT * FROM documentos WHERE id_documento = ? LIMIT 1', [id]);
+      if (!rows || rows.length === 0) throw new Error('Documento no encontrado');
+      const doc = rows[0];
+      // Authorization check
+      if (doc.id_persona !== req.user.id_persona && req.user.admin !== 'SI') {
+        throw new Error('No autorizado');
+      }
+      const filePath = path.join(__dirname, '..', 'docs', doc.filename);
+      // Delete file if exists
+      try {
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      } catch (fsErr) {
+        console.error('Error eliminando archivo del disco:', fsErr);
+        // continue to delete DB record
+      }
+      // Delete DB record
+      await conn.query('DELETE FROM documentos WHERE id_documento = ?', [id]);
+      // If personas.nombre_original_archivo matches this filename, set to NULL
+      await conn.query('UPDATE personas SET nombre_original_archivo = NULL WHERE id_persona = ? AND nombre_original_archivo = ?', [doc.id_persona, doc.filename]);
+    });
+    req.flash('success', 'Documento eliminado correctamente');
+    res.redirect('/hoja/add');
+  } catch (err) {
+    console.error('Error eliminando documento:', err);
+    req.flash('message', 'Error al eliminar documento');
+    res.redirect('/hoja/add');
+  }
+});
+
+// Secure download route for uploaded documents
+router.get('/documento/:id', isLoggedIn, async (req, res) => {
+  const id = req.params.id;
+  try {
+    const rows = await db.query('SELECT * FROM documentos WHERE id_documento = ? LIMIT 1', [id]);
+    if (!rows || rows.length === 0) return res.status(404).send('Documento no encontrado');
+    const doc = rows[0];
+
+    // Only allow owner or admin
+    if (doc.id_persona !== req.user.id_persona && req.user.admin !== 'SI') {
+      return res.status(403).send('No autorizado');
+    }
+
+    const filePath = path.join(__dirname, '..', 'docs', doc.filename);
+    res.download(filePath, doc.original_name);
+  } catch (err) {
+    console.error('Error descargando documento:', err);
+    res.status(500).send('Error al descargar documento');
+  }
 });
 
 module.exports = router;

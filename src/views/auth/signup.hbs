@@ -1,75 +1,82 @@
-<main class="signup d-flex">
-  <div class="container d-flex justify-content-center align-items-center vh-100">
-    <div class="row w-100">
-      <div class="col-lg-6 col-md-8 col-sm-10 mx-auto">
-        <div class="card text-center shadow-lg custom-border-extern">
-          <div class="card-header bg-dark text-white navbar">
-            <h3 class="mx-auto">Crear cuenta</h3>
+<main class="signup d-flex align-items-center min-vh-100">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-6 col-md-8 col-sm-10">
+        <div class="card shadow-sm">
+          <div class="card-header bg-success text-white">
+            <h3 class="mb-0">Crear cuenta</h3>
           </div>
-          <div class="card-body">
-            <form action="/signup" method="POST">
+          <div class="card-body p-4">
+            <form action="/signup" method="POST" novalidate>
+              <input type="hidden" name="_csrf" value="{{csrfToken}}">
 
-              <!-- Primer y segundo apellido lado a lado -->
-              <div class="d-flex w-100 mb-3">
-                <input type="text" name="primer_apellido" placeholder="Primer apellido"
-                  class="form-control flex-fill mr-1" style="min-width: 0;" required>
-                <input type="text" name="segundo_apellido" placeholder="Segundo apellido" class="form-control flex-fill ml-1"
-                  style="min-width: 0;" required>
-              </div>
+              <div class="row g-2">
+                <div class="col-md-6">
+                  <label class="form-label">Primer apellido</label>
+                  <input type="text" name="primer_apellido" placeholder="Primer apellido" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Segundo apellido</label>
+                  <input type="text" name="segundo_apellido" placeholder="Segundo apellido" class="form-control" required>
+                </div>
 
-              <!-- Nombres (único campo) -->
-              <div class="form-group mb-3">
-                <input type="text" name="nombres" placeholder="Nombres" class="form-control" required>
-              </div>
+                <div class="col-12">
+                  <label class="form-label">Nombres</label>
+                  <input type="text" name="nombres" placeholder="Nombres" class="form-control" required>
+                </div>
 
-              <!-- Tipo de documento y número lado a lado -->
-              <div class="d-flex w-100 mb-3">
-                <select name="tipo_documento" class="form-control flex-fill mr-1" style="min-width: 0;" required>
-                  <option value="" disabled selected>Tipo de documento</option>
-                  <option value="C.C">C.C</option>
-                  <option value="C.E">C.E</option>
-                  <option value="PAS">PAS</option>
-                </select>
-                <input type="text" name="numero_documento" placeholder="Número de documento"
-                  class="form-control flex-fill ml-1" style="min-width: 0;" required>
-              </div>
+                <div class="col-md-6">
+                  <label class="form-label">Tipo de documento</label>
+                  <select name="tipo_documento" class="form-control" required>
+                    <option value="">Seleccione...</option>
+                    <option value="C.C">C.C</option>
+                    <option value="C.E">C.E</option>
+                    <option value="PAS">PAS</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Número de documento</label>
+                  <input type="text" name="numero_documento" placeholder="Número de documento" class="form-control" required>
+                </div>
 
-              <!-- Contraseña -->
-              <div class="form-group mb-3">
-                <input type="password" name="password" placeholder="Contraseña" class="form-control" required>
-              </div>
+                <div class="col-12">
+                  <label class="form-label">Contraseña</label>
+                  <input type="password" name="password" placeholder="Contraseña (mín. 6 caracteres)" class="form-control" required>
+                </div>
 
-              <!-- Selección de vereda -->
-              <div class="form-group mb-3">
-                <select name="vereda" class="form-control" required>
-                  <option value="" disabled selected>Seleccione vereda</option>
-                  <option value="Pedregal Alto">Pedregal Alto</option>
-                  <option value="Pedregal Bajo">Pedregal Bajo</option>
-                  <option value="La Lajita">La Lajita</option>
-                  <option value="El Bosque">El Bosque</option>
-                  <option value="El Moral">El Moral</option>
-                  <option value="El Palmar">El Palmar</option>
-                  <option value="Palmarito">Palmarito</option>
-                  <option value="Juan Curí">Juan Curí</option>
-                  <option value="La Laguna">La Laguna</option>
-                  <option value="Santa Rita">Santa Rita</option>
-                  <option value="Caguanoque">Caguanoque</option>
-                  <option value="Centro">Centro</option>
-                </select>
-              </div>
+                <div class="col-12">
+                  <label class="form-label">Vereda</label>
+                  <select name="vereda" class="form-control" required>
+                    <option value="">Seleccione vereda...</option>
+                    <option value="Pedregal Alto">Pedregal Alto</option>
+                    <option value="Pedregal Bajo">Pedregal Bajo</option>
+                    <option value="La Lajita">La Lajita</option>
+                    <option value="El Bosque">El Bosque</option>
+                    <option value="El Moral">El Moral</option>
+                    <option value="El Palmar">El Palmar</option>
+                    <option value="Palmarito">Palmarito</option>
+                    <option value="Juan Curí">Juan Curí</option>
+                    <option value="La Laguna">La Laguna</option>
+                    <option value="Santa Rita">Santa Rita</option>
+                    <option value="Caguanoque">Caguanoque</option>
+                    <option value="Centro">Centro</option>
+                  </select>
+                </div>
 
-              <!-- Pregunta fija -->
-              <div class="form-group mb-3 text-start">
-                <label for="respuesta_junta" class="form-label">
-                  ¿Cómo se llama el presidente de la junta de acción comunal de tu vereda?
-                </label>
-                <input type="text" id="respuesta_junta" name="respuesta_junta" placeholder="Respuesta"
-                  class="form-control" required>
-              </div>
+                <div class="col-12">
+                  <label class="form-label">¿Cómo se llama el presidente de la junta de acción comunal de tu vereda?</label>
+                  <input type="text" id="respuesta_junta" name="respuesta_junta" placeholder="Respuesta" class="form-control" required>
+                </div>
 
-              <!-- Botón de envío -->
-              <div class="form-group">
-                <button class="btn btn-success w-100">Crear</button>
+                <div class="col-12">
+                  <div class="d-grid">
+                    <button class="btn btn-success">Crear cuenta</button>
+                  </div>
+                </div>
+
+                <div class="col-12 text-center small mt-2">
+                  ¿Ya tienes cuenta? <a href="/signin">Inicia sesión</a>
+                </div>
               </div>
 
             </form>

@@ -1,23 +1,31 @@
-<main class="signin d-flex">
-  <div class="container d-flex justify-content-center align-items-center vh-100">
-    <div class="row w-100">
-      <div class="col-lg-6 col-md-8 col-sm-10 mx-auto">
-        <div class="card text-center shadow-lg custom-border-extern">
-          <div class="card-header navbar text-white">
-            <h3 class="mx-auto">Inicia sesion</h3>
+<main class="signin d-flex align-items-center min-vh-100">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-6 col-md-8 col-sm-10">
+        <div class="card shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Iniciar sesión</h3>
           </div>
-          <div class="card-body">
-            <form action="/signin" method="POST">
-              <div class="form-group mb-3">
-                <input type="text" name="numero_documento" placeholder="Número de documento" class="form-control" autofocus>
+          <div class="card-body p-4">
+            <form action="/signin" method="POST" novalidate>
+              <input type="hidden" name="_csrf" value="{{csrfToken}}">
+              <div class="mb-3">
+                <label class="form-label">Número de documento</label>
+                <input type="text" name="numero_documento" placeholder="Número de documento" class="form-control" autofocus required>
               </div>
-              <div class="form-group mb-3">
-                <input type="password" name="password" placeholder="Contraseña" class="form-control">
+              <div class="mb-3">
+                <label class="form-label">Contraseña</label>
+                <input type="password" name="password" placeholder="Contraseña" class="form-control" required>
               </div>
-              <button class="btn btn-primary w-100">
-                Iniciar
-              </button>
+              <div class="d-grid">
+                <button class="btn btn-primary">
+                  Iniciar
+                </button>
+              </div>
             </form>
+            <div class="mt-3 text-center small">
+              ¿No tienes cuenta? <a href="/signup">Regístrate</a>
+            </div>
           </div>
         </div>
       </div>
