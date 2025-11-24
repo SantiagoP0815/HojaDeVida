@@ -1,259 +1,160 @@
-/* --- FUENTES Y GENERALES (CORREGIDO) --- */
+/* --- ESTILOS BASE --- */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Roboto:wght@400;500&display=swap');
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 
 :root {
     --primary-color: #3b4ce2;
-    --secondary-color: #24292e;
     --accent-color: #10b981;
     --text-dark: #333;
-    --text-light: #f5f6fa;
-    --overlay-dark: rgba(0, 0, 0, 0.65);
+    --bg-light: #f8f9fa;
 }
 
-html, body {
-    width: 100%;
-    height: 100%;
-    margin: 0 !important;   /* ¡Importante! Quita la barra blanca */
-    padding: 0 !important;
+* {
+    box-sizing: border-box;
+}
+
+body {
     font-family: 'Poppins', sans-serif;
     background-color: #f5f6fa;
-    color: var(--text-dark);
-    overflow-x: hidden;     /* Evita que aparezca scroll horizontal */
+    /* El padding-top ya está en main.hbs, aquí no lo repetimos */
 }
 
-main {
-    position: relative; /* Referencia para los hijos absolutos */
+/* --- DISEÑO DE LA PÁGINA DE EDICIÓN (NUEVO) --- */
+.edit-layout-container {
+    /* Altura exacta: Pantalla - Barra de navegación (70px) */
+    height: calc(100vh - 70px);
     width: 100%;
-    height: 100vh;
-    margin: 0 !important;
-    padding: 0 !important; /* Evita barras de scroll dobles */
+    overflow: hidden; /* Evita scroll en el contenedor padre */
+    display: flex;
 }
 
-/* --- NAVBAR --- */
-.navbar {
-    background: rgba(0, 0, 0, 0.9) !important; /* Un poco de transparencia */
-    backdrop-filter: blur(10px);
-    padding: 1rem 2rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-
-.navbar-brand {
-    font-weight: 700;
-    letter-spacing: 1px;
-    font-size: 1.5rem;
-}
-
-.nav-link {
-    color: #ffffff !important;
-    font-size: 1.1rem;
-    margin-left: 15px;
-    transition: color 0.3s ease;
-}
-
-.nav-link:hover {
-    color: var(--accent-color) !important;
-}
-
-/* --- PORTADA Y TARJETAS (FIX FINAL) --- */
-
-/* 1. Contenedor principal */
-.index {
-    width: 100%;
-    height: 100vh;
-    overflow: hidden;
-    position: relative;
-}
-
-/* 2. La Portada */
-.masthead {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
+/* Barra Lateral */
+.sidebar-menu {
+    background-color: #ffffff;
+    border-right: 1px solid #e0e0e0;
     height: 100%;
-    background: url('/img/IGLESIA.jpg') no-repeat center center;
-    background-size: cover;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    color: white;
-    margin: 0 !important;
-    padding: 0 !important;
-    z-index: 1;
-}
-
-/* Capa oscura */
-.masthead::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7); /* Un poco más oscuro para mejor lectura */
-    z-index: -1;
-}
-
-/* Contenido principal (Texto + Tarjetas) */
-.masthead-content {
-    position: relative;
-    z-index: 2;
-    width: 100%;
-    max-width: 1100px; /* MÁS ANCHO para que quepan las 3 tarjetas */
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-/* 3. Estilos de las Tarjetas (Cards) */
-.info-cards-row {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    width: 100%;
-    margin-top: 20px;
-    flex-wrap: wrap; /* En celular se pondrán una debajo de otra */
-}
-
-.info-card {
-    flex: 1; /* Las 3 ocupan el mismo ancho */
-    min-width: 250px; /* Ancho mínimo para que no se aplasten */
-    
-    background: rgba(255, 255, 255, 0.15); /* Efecto vidrio */
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 15px;
-    padding: 20px;
-    
-    text-align: center;
-    transition: transform 0.3s ease, background 0.3s;
-}
-
-.info-card:hover {
-    transform: translateY(-5px);
-    background: rgba(255, 255, 255, 0.25);
-}
-
-.card-icon {
-    font-size: 2rem;
-    color: var(--accent-color); /* Tu color verde/acento */
-    margin-bottom: 10px;
-}
-
-.info-card h4 {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-bottom: 10px;
-    color: #fff;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-}
-
-.info-card p {
-    font-size: 0.95rem;
-    margin: 0;
-    color: #f0f0f0;
-    line-height: 1.4;
-}
-
-@media (max-width: 768px) {
-    .masthead h1 { font-size: 2.5rem; }
-    .masthead h3 { font-size: 1.2rem; }
-}
-
-/* --- BOTONES MODERNOS --- */
-.btn-custom {
-    padding: 12px 35px;
-    font-weight: 600;
-    border-radius: 50px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.3s ease;
-    border: none;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-.btn-primary-custom {
-    background: linear-gradient(45deg, var(--primary-color), #6c63ff);
-    color: white;
-}
-
-.btn-primary-custom:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(59, 76, 226, 0.4);
-    color: white;
-    text-decoration: none;
-}
-
-.btn-success-custom {
-    background: linear-gradient(45deg, var(--accent-color), #34d399);
-    color: white;
-}
-
-.btn-success-custom:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-    color: white;
-}
-
-/* --- FEATURES SECTION (Nueva sección para el index) --- */
-.features-section {
-    background-color: #fff;
-    padding: 5rem 0;
-    position: relative;
-    z-index: 2;
-}
-
-.feature-card {
-    text-align: center;
-    padding: 2rem;
-    border-radius: 15px;
-    background: #f8f9fa;
-    transition: transform 0.3s ease;
-    height: 100%;
-}
-
-.feature-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-
-.feature-icon {
-    font-size: 3rem;
-    color: var(--primary-color);
-    margin-bottom: 1rem;
-}
-
-/* --- LOGIN / SIGNUP CARDS --- */
-.custom-border-extern {
-    border: none;
-    border-radius: 20px;
-    overflow: hidden;
-}
-
-.card-header {
-    background: var(--secondary-color) !important;
-    border-bottom: none;
     padding: 1.5rem;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.02);
+    z-index: 10;
+    min-width: 280px; /* Ancho fijo cómodo */
 }
 
-.card-body {
-    padding: 2rem;
+/* Botones de navegación (Pills) */
+.nav-pills .nav-link {
+    color: #555;
+    font-weight: 500;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    text-align: left;
 }
 
-/* --- ESTILOS ORIGINALES DEL FORMULARIO (NO BORRAR) --- */
-/* Mantenemos tus clases .nice-form-group y .demo-page para que add.hbs funcione */
-/* ... (Aquí el navegador aplicará las reglas que ya tenías si no las sobrescribimos, 
-   pero asegúrate de que las clases .nice-form-group y relacionadas sigan en tu archivo si copias y pegas) ... */
-/* NOTA: Para que funcione perfecto, COPIA el bloque .nice-form-group original DE TU ARCHIVO 
-   y pégalo al final de este CSS nuevo, o simplemente reemplaza la parte superior de tu CSS actual con este. */
+.nav-pills .nav-link:hover {
+    background-color: #f0f2f5;
+    color: var(--primary-color);
+}
+
+.nav-pills .nav-link.active {
+    background-color: var(--primary-color);
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(59, 76, 226, 0.3);
+}
+
+.nav-pills .nav-link i, 
+.nav-pills .nav-link svg {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+/* Área de Contenido (Formulario) */
+.content-area {
+    flex: 1; /* Ocupa el resto del espacio */
+    height: 100%;
+    overflow-y: auto; /* Scroll SOLO aquí */
+    padding: 2rem 3rem;
+    background-color: #f5f6fa;
+}
+
+/* Contenedor blanco del formulario */
+.form-card {
+    background: #fff;
+    padding: 2.5rem;
+    border-radius: 15px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    margin-bottom: 3rem; /* Espacio al final para no cortar */
+}
+
+/* Títulos de sección */
+.section-title {
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+}
+
+.section-title svg {
+    margin-right: 10px;
+}
+
+/* --- ESTILOS DE TUS INPUTS (NICE-FORM-GROUP) --- */
+/* Mantenemos estos estilos originales para que tus inputs se vean bien */
+.nice-form-group {
+    margin-bottom: 1.5rem;
+}
+.nice-form-group > label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #444;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+.nice-form-group > input, 
+.nice-form-group > select, 
+.nice-form-group > textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    background-color: #fff;
+    transition: border-color 0.15s ease-in-out;
+}
+.nice-form-group > input:focus {
+    border-color: var(--primary-color);
+    outline: 0;
+}
+
+/* Estilos para bloques dinámicos (educación, empleos) */
+.dynamic-block {
+    background: #fcfcfc;
+    border: 1px solid #eef0f2;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+.dynamic-block::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 15px;
+    bottom: 15px;
+    width: 4px;
+    background: var(--primary-color);
+    border-radius: 0 4px 4px 0;
+}
+
+/* --- ESTILOS DE PORTADA (Index) --- */
+/* Mantenemos lo que arreglamos para la Landing Page */
+.index { width: 100%; height: calc(100vh - 70px); overflow: hidden; position: relative; }
+.masthead { width: 100%; height: 100%; background: url('/img/IGLESIA.jpg') no-repeat center center; background-size: cover; display: flex; align-items: center; justify-content: center; position: relative; }
+.overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1; }
+.masthead .container { position: relative; z-index: 2; }
+.info-cards-row { display: flex; gap: 20px; justify-content: center; margin-top: 2rem; }
+.info-card { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 1.5rem; color: white; text-align: center; flex: 1; min-width: 250px; max-width: 300px; }
+.card-icon { font-size: 2rem; color: #4ade80; margin-bottom: 1rem; }

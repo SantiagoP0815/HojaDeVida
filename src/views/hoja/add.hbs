@@ -1,1059 +1,360 @@
-<div class="container">
-  <div class="row mt-3">
-    <aside class="col-12 col-md-3 mb-3">
-      <style>
-        /* Left navigation card style (softer shadow and subtle border) */
-        .left-card { border-radius: .6rem; box-shadow: 0 6px 18px rgba(13,110,253,0.06); padding: .75rem; background: #fff; border: 1px solid rgba(13,110,253,0.04); }
-        #leftNav .list-group-item { cursor: pointer; border: none; }
-        #leftNav .list-group-item.active { background: #f8f9ff; border-left: 3px solid #0d6efd; color: #0d6efd; font-weight: 600; }
-
-        /* Hide accordion header/buttons completely (keeps markup but removes native toggles) */
-        .accordion-header, .accordion-button { display: none !important; }
-
-        /* Style the accordion body when panel is visible. Important: DO NOT force .accordion-collapse to display:block - allow Bootstrap to manage show/hide. */
-        .accordion .accordion-collapse .accordion-body { padding: 1rem; background: #ffffff; border-radius: .5rem; box-shadow: 0 6px 18px rgba(13,110,253,0.03); border: 1px solid #e9ecef; margin-bottom: 1rem; }
-        .accordion .accordion-collapse { margin-bottom: 0; }
-        .accordion .accordion-body { padding: 0; }
-
-        /* Small responsive tweak: make left card full width on very small screens */
-        @media (max-width: 767.98px) {
-          .left-card { box-shadow: 0 4px 12px rgba(13,110,253,0.05); border-radius: .4rem; }
-          #leftNav .list-group-item { padding: .5rem .6rem; }
-        }
-      </style>
-      <div class="left-card">
-        <div class="list-group" id="leftNav" role="tablist">
-         <a class="list-group-item list-group-item-action active" href="#datos" data-bs-toggle="collapse" data-bs-target="#collapseDatos" aria-expanded="true" aria-controls="collapseDatos">Datos personales</a>
-         <a class="list-group-item list-group-item-action" href="#formacion" data-bs-toggle="collapse" data-bs-target="#collapseFormacion" aria-expanded="false" aria-controls="collapseFormacion">Formación académica</a>
-         <a class="list-group-item list-group-item-action" href="#experiencia" data-bs-toggle="collapse" data-bs-target="#collapseExperiencia" aria-expanded="false" aria-controls="collapseExperiencia">Experiencia Laboral</a>
-         <a class="list-group-item list-group-item-action" href="#tiempo" data-bs-toggle="collapse" data-bs-target="#collapseTiempo" aria-expanded="false" aria-controls="collapseTiempo">Tiempo Total de Experiencia</a>
-         <a class="list-group-item list-group-item-action" href="#documentos" data-bs-toggle="collapse" data-bs-target="#collapseDocumentos" aria-expanded="false" aria-controls="collapseDocumentos">Documentos</a>
+<div class="edit-layout-container">
+    
+    <div class="sidebar-menu">
+        <h5 class="text-muted mb-4 ps-2">Menú de Edición</h5>
+        
+        <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+            <button class="nav-link active" id="v-pills-datos-tab" data-bs-toggle="pill" data-bs-target="#v-pills-datos" type="button" role="tab">
+                <i class="fas fa-user-circle"></i> Datos Personales
+            </button>
+            <button class="nav-link" id="v-pills-formacion-tab" data-bs-toggle="pill" data-bs-target="#v-pills-formacion" type="button" role="tab">
+                <i class="fas fa-graduation-cap"></i> Formación Académica
+            </button>
+            <button class="nav-link" id="v-pills-idiomas-tab" data-bs-toggle="pill" data-bs-target="#v-pills-idiomas" type="button" role="tab">
+                <i class="fas fa-language"></i> Idiomas
+            </button>
+            <button class="nav-link" id="v-pills-experiencia-tab" data-bs-toggle="pill" data-bs-target="#v-pills-experiencia" type="button" role="tab">
+                <i class="fas fa-briefcase"></i> Experiencia Laboral
+            </button>
+            <button class="nav-link" id="v-pills-tiempo-tab" data-bs-toggle="pill" data-bs-target="#v-pills-tiempo" type="button" role="tab">
+                <i class="fas fa-clock"></i> Tiempo Total
+            </button>
         </div>
 
-        <div class="mt-3 d-grid gap-2">
-          <button type="button" id="btnSaveLeft" class="btn btn-success" onclick="enviarFormulario()">Guardar cambios</button>
-          <button type="button" id="btnPdfLeft" class="btn btn-primary" onclick="descargarPDF()">Descargar PDF</button>
-          <a class="btn btn-outline-secondary" target="_blank" href="/hoja/view/{{user.unique_identifier}}">Enlace para compartir</a>
+        <div class="mt-auto pt-4 border-top">
+            <button type="button" class="btn btn-success w-100 mb-2 shadow-sm" onclick="enviarFormulario()">
+                <i class="fas fa-save me-2"></i> Guardar Todo
+            </button>
+            <button type="button" class="btn btn-primary w-100 mb-2 shadow-sm" onclick="descargarPDF()">
+                <i class="fas fa-file-pdf me-2"></i> Descargar PDF
+            </button>
+            <button type="button" class="btn btn-outline-secondary w-100 btn-sm" onclick="window.open('/hoja/view/{{user.unique_identifier}}', '_blank')">
+                <i class="fas fa-share-alt me-2"></i> Compartir Enlace
+            </button>
         </div>
-      </div>
-      
-    </aside>
+    </div>
 
-    <main class="col-12 col-md-9">
-      <form id="datos-form" action="/hoja/insertar-datos" method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="_csrf" value="{{csrfToken}}">
+    <div class="content-area">
+        <form id="datos-form" action="/hoja/insertar-datos" method="POST" enctype="multipart/form-data">
+            
+            <div class="tab-content" id="v-pills-tabContent">
+                
+                <div class="tab-pane fade show active" id="v-pills-datos" role="tabpanel">
+                    <div class="form-card">
+                        <h2 class="section-title"><i class="fas fa-user-edit"></i> Datos Personales</h2>
+                        
+                        <div class="row">
+                            <div class="col-md-6 nice-form-group">
+                                <label>Nombres</label>
+                                <input type="text" name="nombres" value="{{user.nombres}}" required />
+                            </div>
+                            <div class="col-md-6 nice-form-group">
+                                <label>Primer Apellido</label>
+                                <input type="text" name="primer_apellido" value="{{user.primer_apellido}}" required />
+                            </div>
+                            <div class="col-md-6 nice-form-group">
+                                <label>Segundo Apellido</label>
+                                <input type="text" name="segundo_apellido" value="{{user.segundo_apellido}}" />
+                            </div>
+                            <div class="col-md-6 nice-form-group">
+                                <label>Teléfono</label>
+                                <input type="tel" name="telefono" value="{{user.telefono}}" />
+                            </div>
+                            <div class="col-md-12 nice-form-group">
+                                <label>Email</label>
+                                <input type="email" name="email" value="{{user.email}}" />
+                            </div>
+                        </div>
 
-        <div class="accordion" id="hojaAccordion">
-          <!-- Datos Personales -->
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="headingDatos">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDatos"
-                aria-expanded="true" aria-controls="collapseDatos">
-                Datos personales
-              </button>
-            </h2>
-            <div id="collapseDatos" class="accordion-collapse collapse show" aria-labelledby="headingDatos"
-              data-bs-parent="#hojaAccordion">
-              <div class="accordion-body">
-                <!-- ...existing code for personal data inputs... -->
-                <!-- Placeholders: the form fields for nombres, apellidos, documento, sexo, nacionalidad, pais, fecha_nacimiento, direccion, telefono, email, etc. -->
-                <div class="nice-form-group">
-                  <label>NOMBRES</label>
-                  <input type="text" placeholder="Nombres" value="{{user.nombres}}" name="nombres" id="nombres" />
+                        <hr class="my-4">
+
+                        <div class="row">
+                            <div class="col-md-4 nice-form-group">
+                                <label>Tipo Documento</label>
+                                <select name="tipo_documento" class="form-control">
+                                    <option value="C.C" {{#if (eq user.tipo_documento "C.C")}}selected{{/if}}>Cédula de Ciudadanía</option>
+                                    <option value="C.E" {{#if (eq user.tipo_documento "C.E")}}selected{{/if}}>Cédula de Extranjería</option>
+                                    <option value="PAS" {{#if (eq user.tipo_documento "PAS")}}selected{{/if}}>Pasaporte</option>
+                                </select>
+                            </div>
+                            <div class="col-md-8 nice-form-group">
+                                <label>Número Documento</label>
+                                <input type="text" name="numero_documento" value="{{user.numero_documento}}" required />
+                            </div>
+                            <div class="col-md-12 nice-form-group">
+                                <label>Documento Escaneado</label>
+                                <input type="file" name="documento_id" />
+                                {{#if user.nombre_original_archivo}}
+                                    <small class="text-success d-block mt-1"><i class="fas fa-check-circle"></i> Archivo actual: {{user.nombre_original_archivo}}</small>
+                                {{/if}}
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        
+                        <h5 class="mb-3">Lugar de Nacimiento</h5>
+                        <div class="row">
+                            <div class="col-md-4 nice-form-group"><label>País</label><input type="text" name="pais_nacimiento" value="{{user.pais_nacimiento}}" /></div>
+                            <div class="col-md-4 nice-form-group"><label>Departamento</label><input type="text" name="departamento_nacimiento" value="{{user.departamento_nacimiento}}" /></div>
+                            <div class="col-md-4 nice-form-group"><label>Municipio</label><input type="text" name="municipio_nacimiento" value="{{user.municipio_nacimiento}}" /></div>
+                            <div class="col-md-6 nice-form-group"><label>Fecha Nacimiento</label><input type="date" name="fecha_nacimiento" value="{{user.fecha_nacimiento}}" /></div>
+                        </div>
+                        
+                        <div class="nice-form-group mt-3">
+                            <label>Dirección Correspondencia</label>
+                            <input type="text" name="direccion_correspondencia" value="{{user.direccion_correspondencia}}" />
+                        </div>
+                    </div>
                 </div>
 
-                <div class="nice-form-group">
-                  <label>PRIMER APELLIDO</label>
-                  <input type="text" value="{{user.primer_apellido}}" placeholder="Primer apellido" name="primer_apellido"
-                    id="primer_apellido" />
+                <div class="tab-pane fade" id="v-pills-formacion" role="tabpanel">
+                    <div class="form-card">
+                        <h2 class="section-title"><i class="fas fa-graduation-cap"></i> Educación Básica y Media</h2>
+                        <div class="nice-form-group">
+                            <label>Último grado aprobado (1-11)</label>
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                {{#each (range 1 12)}}
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="educacion_basica" id="grado_{{this}}" value="{{this}}" {{#if (eq ../educacion_basica_media.educacion_basica (add "" this))}}checked{{/if}}>
+                                    <label class="form-check-label" for="grado_{{this}}">{{this}}°</label>
+                                </div>
+                                {{/each}}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-8 nice-form-group">
+                                <label>Título Obtenido (Bachiller)</label>
+                                <input type="text" name="titulo_obtenido" value="{{educacion_basica_media.titulo_obtenido}}" />
+                            </div>
+                            <div class="col-md-4 nice-form-group">
+                                <label>Fecha Grado</label>
+                                <input type="month" name="fecha_grado" value="{{educacion_basica_media.fecha_grado}}" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-card">
+                        <h2 class="section-title"><i class="fas fa-university"></i> Educación Superior</h2>
+                        <div id="academic-container">
+                            {{#if educacion_superior.length}}
+                                {{#each educacion_superior}}
+                                <div class="dynamic-block academic-block">
+                                    <input type="hidden" name="id_educacion_superior_{{@index}}" value="{{this.id_educacion_superior}}" />
+                                    <div class="row">
+                                        <div class="col-md-6 nice-form-group">
+                                            <label>Modalidad</label>
+                                            <select name="modalidad_academica_{{@index}}">
+                                                <option value="UNIVERSITARIA" {{#if (eq this.modalidad_academica "UNIVERSITARIA")}}selected{{/if}}>Universitaria</option>
+                                                <option value="TECNICA" {{#if (eq this.modalidad_academica "TECNICA")}}selected{{/if}}>Técnica</option>
+                                                <option value="TECNOLOGA" {{#if (eq this.modalidad_academica "TECNOLOGA")}}selected{{/if}}>Tecnológica</option>
+                                                <option value="ESPECIALIZACION" {{#if (eq this.modalidad_academica "ESPECIALIZACION")}}selected{{/if}}>Especialización</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 nice-form-group">
+                                            <label>Título Obtenido</label>
+                                            <input type="text" name="nombre_titulo_{{@index}}" value="{{this.nombre_titulo}}" />
+                                        </div>
+                                    </div>
+                                    <div class="nice-form-group">
+                                        <label>Soporte (PDF/Imagen)</label>
+                                        <input type="file" name="documento_educacion_superior_{{@index}}" />
+                                    </div>
+                                </div>
+                                {{/each}}
+                            {{else}}
+                                <div class="dynamic-block academic-block">
+                                    <input type="hidden" name="id_educacion_superior_0" value="" />
+                                    <div class="row">
+                                        <div class="col-md-6 nice-form-group">
+                                            <label>Modalidad</label>
+                                            <select name="modalidad_academica_0">
+                                                <option value="UNIVERSITARIA">Universitaria</option>
+                                                <option value="TECNICA">Técnica</option>
+                                                <option value="TECNOLOGA">Tecnológica</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 nice-form-group">
+                                            <label>Título Obtenido</label>
+                                            <input type="text" name="nombre_titulo_0" />
+                                        </div>
+                                    </div>
+                                    <div class="nice-form-group">
+                                        <label>Soporte</label>
+                                        <input type="file" name="documento_educacion_superior_0" />
+                                    </div>
+                                </div>
+                            {{/if}}
+                        </div>
+                        <div class="text-end">
+                            <button type="button" id="remove-academic" class="btn btn-outline-danger btn-sm me-2">Eliminar último</button>
+                            <button type="button" id="add-academic" class="btn btn-outline-success btn-sm">Agregar otro estudio</button>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="nice-form-group">
-                  <label>SEGUNDO APELLIDO </label>
-                  <small>(o de casada)</small>
-                  <input type="text" value="{{user.segundo_apellido}}" placeholder="Segundo apellido" name="segundo_apellido"
-                    id="segundo_apellido" />
+                <div class="tab-pane fade" id="v-pills-idiomas" role="tabpanel">
+                    <div class="form-card">
+                        <h2 class="section-title"><i class="fas fa-language"></i> Idiomas</h2>
+                        <div id="languages-container">
+                            {{#if idiomas.length}}
+                                {{#each idiomas}}
+                                <div class="dynamic-block language-block">
+                                    <input type="hidden" name="id_idioma_{{@index}}" value="{{this.id_idioma}}" />
+                                    <div class="nice-form-group">
+                                        <label>Idioma</label>
+                                        <input type="text" name="idioma_{{@index}}" value="{{this.idioma}}" />
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4"><label>Habla</label><select name="habla_{{@index}}" class="form-control"><option>Bien</option><option>Regular</option></select></div>
+                                        <div class="col-md-4"><label>Lee</label><select name="lee_{{@index}}" class="form-control"><option>Bien</option><option>Regular</option></select></div>
+                                        <div class="col-md-4"><label>Escribe</label><select name="escribe_{{@index}}" class="form-control"><option>Bien</option><option>Regular</option></select></div>
+                                    </div>
+                                </div>
+                                {{/each}}
+                            {{else}}
+                                <div class="dynamic-block language-block">
+                                    <input type="hidden" name="id_idioma_0" value="" />
+                                    <div class="nice-form-group"><label>Idioma</label><input type="text" name="idioma_0" /></div>
+                                    </div>
+                            {{/if}}
+                        </div>
+                        <div class="text-end mt-3">
+                            <button type="button" id="remove-language" class="btn btn-outline-danger btn-sm me-2">Eliminar</button>
+                            <button type="button" id="add-language" class="btn btn-outline-success btn-sm">Agregar Idioma</button>
+                        </div>
+                    </div>
                 </div>
 
-                <fieldset class="nice-form-group">
-                  <legend>TIPO DE DOCUMENTO DE IDENTIFICACIÓN</legend>
-                  <div class="nice-form-group">
-                    <input type="radio" name="tipo_documento" id="C.C" value="C.C" {{#if (eq user.tipo_documento "C.C" )}}
-                      checked {{/if}} />
-                    <label for="C.C">C.C</label>
-                  </div>
-                  <div class="nice-form-group">
-                    <input type="radio" name="tipo_documento" id="C.E" value="C.E" {{#if (eq user.tipo_documento "C.E" )}}
-                      checked {{/if}} />
-                    <label for="C.E">C.E</label>
-                  </div>
-                  <div class="nice-form-group">
-                    <input type="radio" name="tipo_documento" id="PAS" value="PAS" {{#if (eq user.tipo_documento "PAS" )}}
-                      checked {{/if}} />
-                    <label for="PAS">PAS</label>
-                  </div>
-                </fieldset>
+                <div class="tab-pane fade" id="v-pills-experiencia" role="tabpanel">
+                    <div class="form-card">
+                        <h2 class="section-title"><i class="fas fa-briefcase"></i> Experiencia Laboral</h2>
+                        
+                        <div class="dynamic-block border-primary">
+                            <h5 class="text-primary mb-3">Empleo Actual</h5>
+                            <input type="hidden" name="id_experiencia_0" value="{{empleoActual.id_experiencia}}" />
+                            <input type="hidden" name="empleo_actual_0" value="SI" />
+                            <div class="row">
+                                <div class="col-md-6 nice-form-group">
+                                    <label>Empresa</label>
+                                    <input type="text" name="empresa_entidad_0" value="{{empleoActual.empresa_entidad}}" />
+                                </div>
+                                <div class="col-md-6 nice-form-group">
+                                    <label>Cargo</label>
+                                    <input type="text" name="cargo_actual_0" value="{{empleoActual.cargo_actual}}" />
+                                </div>
+                                <div class="col-md-6 nice-form-group">
+                                    <label>Fecha Ingreso</label>
+                                    <input type="date" name="fecha_ingreso_0" value="{{empleoActual.fecha_ingreso}}" />
+                                </div>
+                            </div>
+                        </div>
 
-                <div class="nice-form-group">
-                  <label>NÚMERO DE DOCUMENTO DE IDENTIFICACIÓN</label>
-                  <input type="tel" placeholder="Número de documento de identificación" value="{{user.numero_documento}}"
-                    name="numero_documento" id="numero_documento" />
+                        <h5 class="mb-3 mt-4">Empleos Anteriores</h5>
+                        <div id="empleos-container">
+                            {{#if empleosAnteriores.length}}
+                                {{#each empleosAnteriores}}
+                                <div class="dynamic-block empleos-block">
+                                    <input type="hidden" name="empleo_actual_{{add @index 1}}" value="NO" />
+                                    <input type="hidden" name="id_experiencia_{{add @index 1}}" value="{{this.id_experiencia}}" />
+                                    <div class="nice-form-group">
+                                        <label>Empresa Anterior</label>
+                                        <input type="text" name="empresa_entidad_{{add @index 1}}" value="{{this.empresa_entidad}}" />
+                                    </div>
+                                    </div>
+                                {{/each}}
+                            {{else}}
+                                <div class="dynamic-block empleos-block">
+                                    <input type="hidden" name="empleo_actual_1" value="NO" />
+                                    <input type="hidden" name="id_experiencia_1" value="" />
+                                    <div class="nice-form-group">
+                                        <label>Empresa Anterior</label>
+                                        <input type="text" name="empresa_entidad_1" />
+                                    </div>
+                                </div>
+                            {{/if}}
+                        </div>
+                        <div class="text-end mt-3">
+                            <button type="button" id="remove-empleos" class="btn btn-outline-danger btn-sm me-2">Eliminar</button>
+                            <button type="button" id="add-empleos" class="btn btn-outline-success btn-sm">Agregar Empleo</button>
+                        </div>
+                    </div>
                 </div>
 
-                <fieldset class="nice-form-group">
-                  <legend>SEXO</legend>
-                  <div class="nice-form-group">
-                    <input type="radio" name="sexo" id="masculino" value="M" {{#if (eq user.sexo "M" )}}checked{{/if}} />
-                    <label for="masculino">Masculino</label>
-                  </div>
-                  <div class="nice-form-group">
-                    <input type="radio" name="sexo" id="femenino" value="F" {{#if (eq user.sexo "F" )}}checked{{/if}} />
-                    <label for="femenino">Femenino</label>
-                  </div>
-                </fieldset>
-
-
-                <fieldset class="nice-form-group">
-                  <legend>NACIONALIDAD</legend>
-                  <div class="nice-form-group">
-                    <input type="radio" name="nacionalidad" id="colombiano" value="COLOMBIANO" {{#if (eq
-                      user.nacionalidad "COLOMBIANO" )}}checked{{/if}} />
-                    <label for="colombiano">Colombiano</label>
-                  </div>
-                  <div class="nice-form-group">
-                    <input type="radio" name="nacionalidad" id="extranjero" value="EXTRANJERO" {{#if (eq
-                      user.nacionalidad "EXTRANJERO" )}}checked{{/if}} />
-                    <label for="extranjero">Extranjero</label>
-                  </div>
-                </fieldset>
-
-                <div class="nice-form-group">
-                  <label>PAÍS DE NACIONALIDAD</label>
-                  <input type="text" name="pais" value="{{user.pais}}" placeholder="País" id="pais" />
+                <div class="tab-pane fade" id="v-pills-tiempo" role="tabpanel">
+                    <div class="form-card">
+                        <h2 class="section-title"><i class="fas fa-clock"></i> Tiempo Total Experiencia</h2>
+                        <div class="row">
+                            <div class="col-md-6 nice-form-group">
+                                <label>Años en Sector Público</label>
+                                <input type="number" name="anios_servidor_publico" value="{{tiempo_experiencia.anios_servidor_publico}}" />
+                            </div>
+                            <div class="col-md-6 nice-form-group">
+                                <label>Años en Sector Privado</label>
+                                <input type="number" name="anios_sector_privado" value="{{tiempo_experiencia.anios_sector_privado}}" />
+                            </div>
+                            <div class="col-md-12 nice-form-group">
+                                <label>Total Años Experiencia</label>
+                                <input type="number" name="anios_total_experiencia" value="{{tiempo_experiencia.anios_total_experiencia}}" class="fw-bold" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                {{#if documento}}
-                <div class="nice-form-group">
-                  <label>DOCUMENTO DE IDENTIFICACIÓN ESCANEADO</label>
-                  <input type="file" name="documento_id" id="documento_id" />
-                  <div id="file-info" style="margin-top: 10px; font-size: 0.9em; color: #555;">
-                    Archivo guardado:
-                    <a target="_blank" href="/hoja/documento/{{ documento.id_documento }}" style="color: #0011ff;">
-                      Descargar documento
-                    </a>
-                    <div style="font-size:0.85em;color:#666;margin-top:4px">Original: {{documento.original_name}}</div>
-                  </div>
-                </div>
-                {{else}}
-                <div class="nice-form-group">
-                  <label>DOCUMENTO DE IDENTIFICACIÓN ESCANEADO</label>
-                  <input type="file" name="documento_id" id="documento_id" />
-                  <div style="margin-top: 10px, font-size: 0.9em, color: #555;">
-                    No hay ningún archivo guardado
-                  </div>
-                </div>
-                {{/if}}
-
-                <fieldset class="nice-form-group">
-                  <legend>TIPO DE LIBRETA MILITAR</legend>
-                  <div class="nice-form-group">
-                    <input type="radio" name="tipo_libreta_militar" id="primera clase" value="PRIMERA CLASE" {{#if (eq
-                      user.tipo_libreta_militar "PRIMERA CLASE" )}}checked{{/if}} />
-                    <label for="primera clase">Primera clase</label>
-                  </div>
-                  <div class="nice-form-group">
-                    <input type="radio" name="tipo_libreta_militar" id="segunda clase" value="SEGUNDA CLASE" {{#if (eq
-                      user.tipo_libreta_militar "SEGUNDA CLASE" )}}checked{{/if}} />
-                    <label for="segunda clase">Segunda clase</label>
-                  </div>
-                </fieldset>
-
-                <div class="nice-form-group">
-                  <label>NÚMERO DE LIBRETA MILITAR</label>
-                  <input type="tel" placeholder="Número de libreta militar" value="{{user.numero_libreta_militar}}"
-                    name="numero_libreta_militar" id="numero_libreta_militar" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>D.M DE LIBRETA MILITAR</label>
-                  <input type="tel" placeholder="D.M de libreta militar" value="{{user.dm_libreta_militar}}"
-                    name="dm_libreta_militar" id="dm_libreta_militar" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>FECHA DE NACIMIENTO</label>
-                  <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" value="{{user.fecha_nacimiento}}" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>PAÍS DE NACIMIENTO</label>
-                  <input type="text" name="pais_nacimiento" value="{{user.pais_nacimiento}}" placeholder="País de nacimiento"
-                    id="pais_nacimiento" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>DEPARTAMENTO DE NACIMIENTO</label>
-                  <input type="text" name="departamento_nacimiento" value="{{user.departamento_nacimiento}}"
-                    placeholder="Departamento de nacimiento" id="departamento_nacimiento" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>MUNICIPIO DE NACIMIENTO</label>
-                  <input type="text" name="municipio_nacimiento" value="{{user.municipio_nacimiento}}"
-                    placeholder="Municipio de nacimiento" id="municipio_nacimiento" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>DIRECCIÓN DE CORRESPONDENCIA</label>
-                  <input type="text" name="direccion_correspondencia" value="{{user.direccion_correspondencia}}"
-                    placeholder="Dirección de correspondencia" id="direccion_correspondencia" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>PAÍS DE CORRESPONDENCIA</label>
-                  <input type="text" name="pais_correspondencia" value="{{user.pais_correspondencia}}"
-                    placeholder="País de correspondencia" id="pais_correspondencia" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>DEPARTAMENTO DE CORRESPONDENCIA</label>
-                  <input type="text" name="departamento_correspondencia" value="{{user.departamento_correspondencia}}"
-                    placeholder="Departamento de correspondencia" id="departamento_correspondencia" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>MUNICIPIO DE CORRESPONDENCIA</label>
-                  <input type="text" name="municipio_correspondencia" value="{{user.municipio_correspondencia}}"
-                    placeholder="Municipio de correspondencia" id="municipio_correspondencia" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>TELÉFONO</label>
-                  <input type="tel" placeholder="Teléfono" value="{{user.telefono}}" class="icon-left" name="telefono"
-                    id="telefono" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>EMAIL</label>
-                  <input type="email" placeholder="Email" value="{{user.email}}" class="icon-left" name="email" id="email" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Formación académica -->
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="headingFormacion">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFormacion"
-                aria-expanded="false" aria-controls="collapseFormacion">
-                Formación académica
-              </button>
-            </h2>
-            <div id="collapseFormacion" class="accordion-collapse collapse" aria-labelledby="headingFormacion"
-              data-bs-parent="#hojaAccordion">
-              <div class="accordion-body">
-                <!-- ...existing code for educación básica/media and superior blocks... -->
-                <h1 class="nice-form-group">EDUCACIÓN BASICA Y MEDIA</h1>
-                <fieldset class="nice-form-group">
-                  <small>Seleccione el último grado aprobado</small>
-                  <div class="radio-container">
-                    <div class="radio-item">
-                      <input type="radio" name="educacion_basica" id="1" value="1" {{#if (eq
-                        educacion_basica_media.educacion_basica "1" )}}checked{{/if}} />
-                      <label for="1">1</label>
-                    </div>
-                    <div class="radio-item">
-                      <input type="radio" name="educacion_basica" id="2" value="2" {{#if (eq
-                        educacion_basica_media.educacion_basica "2" )}}checked{{/if}} />
-                      <label for="2">2</label>
-                    </div>
-                    <div class="radio-item">
-                      <input type="radio" name="educacion_basica" id="3" value="3" {{#if (eq
-                        educacion_basica_media.educacion_basica "3" )}}checked{{/if}} />
-                      <label for="3">3</label>
-                    </div>
-                    <div class="radio-item">
-                      <input type="radio" name="educacion_basica" id="4" value="4" {{#if (eq
-                        educacion_basica_media.educacion_basica "4" )}}checked{{/if}} />
-                      <label for="4">4</label>
-                    </div>
-                    <div class="radio-item">
-                      <input type="radio" name="educacion_basica" id="5" value="5" {{#if (eq
-                        educacion_basica_media.educacion_basica "5" )}}checked{{/if}} />
-                      <label for="5">5</label>
-                    </div>
-                    <div class="radio-item">
-                      <input type="radio" name="educacion_basica" id="6" value="6" {{#if (eq
-                        educacion_basica_media.educacion_basica "6" )}}checked{{/if}} />
-                      <label for="6">6</label>
-                    </div>
-                    <div class="radio-item">
-                      <input type="radio" name="educacion_basica" id="7" value="7" {{#if (eq
-                        educacion_basica_media.educacion_basica "7" )}}checked{{/if}} />
-                      <label for="7">7</label>
-                    </div>
-                    <div class="radio-item">
-                      <input type="radio" name="educacion_basica" id="8" value="8" {{#if (eq
-                        educacion_basica_media.educacion_basica "8" )}}checked{{/if}} />
-                      <label for="8">8</label>
-                    </div>
-                    <div class="radio-item">
-                      <input type="radio" name="educacion_basica" id="9" value="9" {{#if (eq
-                        educacion_basica_media.educacion_basica "9" )}}checked{{/if}} />
-                      <label for="9">9</label>
-                    </div>
-                    <div class="radio-item">
-                      <input type="radio" name="educacion_basica" id="10" value="10" {{#if (eq
-                        educacion_basica_media.educacion_basica "10" )}}checked{{/if}} />
-                      <label for="10">10</label>
-                    </div>
-                    <div class="radio-item">
-                      <input type="radio" name="educacion_basica" id="11" value="11" {{#if (eq
-                        educacion_basica_media.educacion_basica "11" )}}checked{{/if}} />
-                      <label for="11">11</label>
-                    </div>
-                  </div>
-
-                </fieldset>
-
-                <div class="nice-form-group">
-                  <label>TÍTULO OBTENIDO</label>
-                  <input type="text" name="titulo_obtenido" value="{{educacion_basica_media.titulo_obtenido}}"
-                    placeholder="Título obtenido" id="titulo_obtenido" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>FECHA DE GRADO</label>
-                  <input type="month" value="{{educacion_basica_media.fecha_grado}}" id="fecha_grado" name="fecha_grado" />
-                </div>
-
-                <h1 class="nice-form-group">EDUCACIÓN SUPERIOR (pregrado y postgrado)</h1>
-                <div id="academic-container">
-                  {{#if educacion_superior.length}}
-                  {{#each educacion_superior}}
-                  <div class="academic-block">
-                    <div class="nice-form-group">
-                      <input type="hidden" name="id_educacion_superior_{{@index}}" value="{{this.id_educacion_superior}}" />
-                    </div>
-                    <div class="nice-form-group">
-                      <label>MODALIDAD ACADÉMICA</label>
-                      <select name="modalidad_academica_{{@index}}">
-                        <option value="" disabled {{#if (eq this.modalidad_academica "" )}}selected{{/if}}>Seleccione la
-                          modalidad académica</option>
-                        <option value="TECNICA" {{#if (eq this.modalidad_academica "TECNICA" )}}selected{{/if}}>Técnica
-                        </option>
-                        <option value="TECNOLOGA" {{#if (eq this.modalidad_academica "TECNOLOGA" )}}selected{{/if}}>Tecnológica
-                        </option>
-                        <option value="TECNOLOGA ESPECIALIZADA" {{#if (eq this.modalidad_academica "TECNOLOGA ESPECIALIZADA"
-                          )}}selected{{/if}}>Tecnología especializada</option>
-                        <option value="UNIVERSITARIA" {{#if (eq this.modalidad_academica "UNIVERSITARIA" )}}selected{{/if}}>
-                          Universitaria</option>
-                        <option value="ESPECIALIZACION" {{#if (eq this.modalidad_academica "ESPECIALIZACION" )}}selected{{/if}}>
-                          Especialización</option>
-                        <option value="MAESTRIA O MAGISTER" {{#if (eq this.modalidad_academica "MAESTRIA O MAGISTER"
-                          )}}selected{{/if}}>Maestría o Magister</option>
-                        <option value="DOCTORADO O PHD" {{#if (eq this.modalidad_academica "DOCTORADO O PHD" )}}selected{{/if}}>
-                          Doctorado o PHD</option>
-                      </select>
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>NÚMERO DE SEMESTRES APROBADOS</label>
-                      <input type="number" name="semestres_aprobados_{{@index}}" value="{{this.semestres_aprobados}}"
-                        placeholder="1" />
-                    </div>
-
-                    <fieldset class="nice-form-group">
-                      <legend>GRADUADO</legend>
-                      <div class="nice-form-group">
-                        <input type="radio" name="graduado_{{@index}}" id="si_{{@index}}" value="SI" {{#if (eq
-                          this.graduado "SI" )}}checked{{/if}} />
-                        <label for="si_{{@index}}">Si</label>
-                      </div>
-                      <div class="nice-form-group">
-                        <input type="radio" name="graduado_{{@index}}" id="no_{{@index}}" value="NO" {{#if (eq
-                          this.graduado "NO" )}}checked{{/if}} />
-                        <label for="no_{{@index}}">No</label>
-                      </div>
-                    </fieldset>
-
-                    <div class="nice-form-group">
-                      <label>NOMBRE DE LOS ESTUDIOS O TÍTULO OBTENIDO</label>
-                      <input type="text" name="nombre_titulo_{{@index}}" value="{{this.nombre_titulo}}"
-                        placeholder="Nombre de los estudios o título obtenido" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>TERMINACIÓN</label>
-                      <input type="month" name="mes_terminacion_{{@index}}" value="{{this.mes_terminacion}}" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>NÚMERO DE TARJETA PROFESIONAL</label>
-                      <input type="text" name="numero_tarjeta_profesional_{{@index}}"
-                        value="{{this.numero_tarjeta_profesional}}" placeholder="Número de tarjeta profesional" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>DOCUMENTO QUE SUSTENTE LA INFORMACIÓN</label>
-                      <input type="file" name="documento_educacion_superior_{{@index}}"
-                        id="documento_educacion_superior_{{@index}}" />
-                      <div style="font-size: 0.9em; color: #555;" class="nice-form-group">
-                        {{#if this.documento }}
-                        Archivo en la base de datos:
-                        <a target="_blank" style="color: #0011ff;">
-                          {{ this.documento }}
-                        </a>
-                        {{else}}
-                        No hay ningún archivo en la base de datos
-                        {{/if}}
-                      </div>
-                    </div>
-                  </div>
-                  {{/each}}
-                  {{else}}
-                  <div class="academic-block">
-                    <div class="nice-form-group">
-                      <input type="hidden" name="id_educacion_superior_0" value="" />
-                    </div>
-                    <div class="nice-form-group">
-                      <label>MODALIDAD ACADÉMICA</label>
-                      <select name="modalidad_academica_0">
-                        <option value="" disabled selected>Seleccione la modalidad académica</option>
-                        <option value="TECNICA">Técnica</option>
-                        <option value="TECNOLOGA">Tecnológica</option>
-                        <option value="TECNOLOGA ESPECIALIZADA">Tecnología especializada</option>
-                        <option value="UNIVERSITARIA">Universitaria</option>
-                        <option value="ESPECIALIZACION">Especialización</option>
-                        <option value="MAESTRIA O MAGISTER">Maestría o Magister</option>
-                        <option value="DOCTORADO O PHD">Doctorado o PHD</option>
-                      </select>
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>NÚMERO DE SEMESTRES APROBADOS</label>
-                      <input type="number" name="semestres_aprobados_0" placeholder="1" />
-                    </div>
-
-                    <fieldset class="nice-form-group">
-                      <legend>GRADUADO</legend>
-                      <div class="nice-form-group">
-                        <input type="radio" name="graduado_0" id="si_0" value="SI" />
-                        <label for="si_0">Si</label>
-                      </div>
-                      <div class="nice-form-group">
-                        <input type="radio" name="graduado_0" id="no_0" value="NO" />
-                        <label for="no_0">No</label>
-                      </div>
-                    </fieldset>
-
-                    <div class="nice-form-group">
-                      <label>NOMBRE DE LOS ESTUDIOS O TÍTULO OBTENIDO</label>
-                      <input type="text" name="nombre_titulo_0" placeholder="Nombre de los estudios o título obtenido" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>TERMINACIÓN</label>
-                      <input type="month" name="mes_terminacion_0" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>NÚMERO DE TARJETA PROFESIONAL</label>
-                      <input type="text" name="numero_tarjeta_profesional_0" placeholder="Número de tarjeta profesional" />
-                    </div>
-                    <div class="nice-form-group">
-                      <label>DOCUMENTO QUE SUSTENTE LA INFORMACIÓN</label>
-                      <input type="file" name="documento_educacion_superior_0" id="documento_educacion_superior_0" />
-                      <div style="font-size: 0.9em; color: #555;" class="nice-form-group">
-                        No hay ningún archivo en la base de datos
-                      </div>
-                    </div>
-                  </div>
-                  {{/if}}
-                </div>
-
-                <div class="botonderecha nice-form-group">
-                  <button type="button" id="remove-academic" class="btn btn-danger">[-] Eliminar Información</button>
-                  <button type="button" id="add-academic" class="btn btn-success ml-2">[+] Añadir Información</button>
-                </div>
-
-                <h1 class="nice-form-group">IDIOMAS DIFERENTES AL ESPAÑOL</h1>
-                <div id="languages-container">
-                  {{#if idiomas.length}}
-                  {{#each idiomas}}
-                  <div class="language-block">
-                    <div class="nice-form-group">
-                      <input type="hidden" name="id_idioma_{{@index}}" value="{{this.id_idioma}}" />
-                    </div>
-                    <div class="nice-form-group">
-                      <label for="idioma_{{@index}}">IDIOMA</label>
-                      <input type="text" name="idioma_{{@index}}" id="idioma_{{@index}}" value="{{this.idioma}}"
-                        placeholder="Idioma" />
-                    </div>
-                    <!-- LO HABLA -->
-                    <fieldset class="nice-form-group">
-                      <legend>LO HABLA</legend>
-                      <div class="form-check form-check-inline pt-2">
-                        <input class="form-check-input" type="radio" name="habla_{{@index}}" id="habla_regular_{{@index}}"
-                          value="REGULAR" {{#if (eq this.lo_habla "REGULAR" )}}checked{{/if}} />
-                        <label class="form-check-label" for="habla_regular_{{@index}}">Regular</label>
-                      </div>
-                      <div class="form-check form-check-inline pt-2">
-                        <input class="form-check-input" type="radio" name="habla_{{@index}}" id="habla_bien_{{@index}}"
-                          value="BIEN" {{#if (eq this.lo_habla "BIEN" )}}checked{{/if}} />
-                        <label class="form-check-label" for="habla_bien_{{@index}}">Bien</label>
-                      </div>
-                      <div class="form-check form-check-inline pt-2">
-                        <input class="form-check-input" type="radio" name="habla_{{@index}}" id="habla_muybien_{{@index}}"
-                          value="MUY BIEN" {{#if (eq this.lo_habla "MUY BIEN" )}}checked{{/if}} />
-                        <label class="form-check-label" for="habla_muybien_{{@index}}">Muy bien</label>
-                      </div>
-                    </fieldset>
-                    <!-- LO LEE -->
-                    <fieldset class="nice-form-group">
-                      <legend>LO LEE</legend>
-                      <div class="form-check form-check-inline pt-2">
-                        <input class="form-check-input" type="radio" name="lee_{{@index}}" id="lee_regular_{{@index}}"
-                          value="REGULAR" {{#if (eq this.lo_lee "REGULAR" )}}checked{{/if}} />
-                        <label class="form-check-label" for="lee_regular_{{@index}}">Regular</label>
-                      </div>
-                      <div class="form-check form-check-inline pt-2">
-                        <input class="form-check-input" type="radio" name="lee_{{@index}}" id="lee_bien_{{@index}}" value="BIEN"
-                          {{#if (eq this.lo_lee "BIEN" )}}checked{{/if}} />
-                        <label class="form-check-label" for="lee_bien_{{@index}}">Bien</label>
-                      </div>
-                      <div class="form-check form-check-inline pt-2">
-                        <input class="form-check-input" type="radio" name="lee_{{@index}}" id="lee_muybien_{{@index}}"
-                          value="MUY BIEN" {{#if (eq this.lo_lee "MUY BIEN" )}}checked{{/if}} />
-                        <label class="form-check-label" for="lee_muybien_{{@index}}">Muy bien</label>
-                      </div>
-                    </fieldset>
-                    <!-- LO ESCRIBE -->
-                    <fieldset class="nice-form-group">
-                      <legend>LO ESCRIBE</legend>
-                      <div class="form-check form-check-inline pt-2">
-                        <input class="form-check-input" type="radio" name="escribe_{{@index}}" id="escribe_regular_{{@index}}"
-                          value="REGULAR" {{#if (eq this.lo_escribe "REGULAR" )}}checked{{/if}} />
-                        <label class="form-check-label" for="escribe_regular_{{@index}}">Regular</label>
-                      </div>
-                      <div class="form-check form-check-inline pt-2">
-                        <input class="form-check-input" type="radio" name="escribe_{{@index}}" id="escribe_bien_{{@index}}"
-                          value="BIEN" {{#if (eq this.lo_escribe "BIEN" )}}checked{{/if}} />
-                        <label class="form-check-label" for="escribe_bien_{{@index}}">Bien</label>
-                      </div>
-                      <div class="form-check form-check-inline pt-2">
-                        <input class="form-check-input" type="radio" name="escribe_{{@index}}" id="escribe_muybien_{{@index}}"
-                          value="MUY BIEN" {{#if (eq this.lo_escribe "MUY BIEN" )}}checked{{/if}} />
-                        <label class="form-check-label" for="escribe_muybien_{{@index}}">Muy bien</label>
-                      </div>
-                    </fieldset>
-                    <div class="nice-form-group">
-                      <label>DOCUMENTO QUE SUSTENTE LA INFORMACIÓN</label>
-                      <input type="file" name="documento_idioma_{{@index}}" id="documento_idioma_{{@index}}" />
-                      <div style="margin-top: 10px; font-size: 0.9em; color: #555;">
-                        {{#if this.documento }}
-                        Archivo en la base de datos:
-                        <a target="_blank" style="color: #0011ff;">
-                          {{ this.documento }}
-                        </a>
-                        {{else}}
-                        No hay ningún archivo en la base de datos
-                        {{/if}}
-                      </div>
-                    </div>
-                  </div>
-                  {{/each}}
-                  {{else}}
-                  <div class="language-block">
-                    <div class="nice-form-group">
-                      <input type="hidden" name="id_idioma_0" value="" />
-                    </div>
-                    <div class="nice-form-group">
-                      <label for="idioma_0">IDIOMA</label>
-                      <input type="text" name="idioma_0" id="idioma_0" value="" placeholder="Idioma" />
-                    </div>
-                    <!-- LO HABLA -->
-                    <fieldset class="nice-form-group">
-                      <legend>LO HABLA</legend>
-                      <div class="form-check form-check-inline pt-2">
-                        <input class="form-check-input" type="radio" name="habla_0" id="habla_regular_0" value="REGULAR" />
-                        <label class="form-check-label" for="habla_regular_0">Regular</label>
-                      </div>
-                      <div class="form-check form-check-inline pt-2">
-                        <input class="form-check-input" type="radio" name="habla_0" id="habla_bien_0" value="BIEN" />
-                        <label class="form-check-label" for="habla_bien_0">Bien</label>
-                      </div>
-                      <div class="form-check form-check-inline pt-2">
-                        <input class="form-check-input" type="radio" name="habla_0" id="habla_muybien_0" value="MUY BIEN" />
-                        <label class="form-check-label" for="habla_muybien_0">Muy bien</label>
-                      </div>
-                    </fieldset>
-                    <!-- LO LEE -->
-                    <fieldset class="nice-form-group">
-                      <legend>LO LEE</legend>
-                      <div class="form-check form-check-inline pt-2">
-                        <input class="form-check-input" type="radio" name="lee_0" id="lee_regular_0" value="REGULAR" />
-                        <label class="form-check-label" for="lee_regular_0">Regular</label>
-                      </div>
-                      <div class="form-check form-check-inline pt-2">
-                        <input class="form-check-input" type="radio" name="lee_0" id="lee_bien_0" value="BIEN" />
-                        <label class="form-check-label" for="lee_bien_0">Bien</label>
-                      </div>
-                      <div class="form-check form-check-inline pt-2">
-                        <input class="form-check-input" type="radio" name="lee_0" id="lee_muybien_0" value="MUY BIEN" />
-                        <label class="form-check-label" for="lee_muybien_0">Muy bien</label>
-                      </div>
-                    </fieldset>
-                    <!-- LO ESCRIBE -->
-                    <fieldset class="nice-form-group">
-                      <legend>LO ESCRIBE</legend>
-                      <div class="form-check form-check-inline pt-2">
-                        <input class="form-check-input" type="radio" name="escribe_0" id="escribe_regular_0" value="REGULAR" />
-                        <label class="form-check-label" for="escribe_regular_0">Regular</label>
-                      </div>
-                      <div class="form-check form-check-inline pt-2">
-                        <input class="form-check-input" type="radio" name="escribe_0" id="escribe_bien_0" value="BIEN" />
-                        <label class="form-check-label" for="escribe_bien_0">Bien</label>
-                      </div>
-                      <div class="form-check form-check-inline pt-2">
-                        <input class="form-check-input" type="radio" name="escribe_0" id="escribe_muybien_0" value="MUY BIEN" />
-                        <label class="form-check-label" for="escribe_muybien_0">Muy bien</label>
-                      </div>
-                    </fieldset>
-                    <div class="nice-form-group">
-                      <label>DOCUMENTO QUE SUSTENTE LA INFORMACIÓN</label>
-                      <input type="file" name="documento_idioma_0" id="documento_idioma_0" />
-                      <div id="file-info" style="margin-top: 10px; font-size: 0.9em; color: #555;">
-                        No hay ningún archivo en la base de datos
-                      </div>
-                    </div>
-                  </div>
-                  {{/if}}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Experiencia laboral -->
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="headingExperiencia">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExperiencia"
-                aria-expanded="false" aria-controls="collapseExperiencia">
-                Experiencia laboral
-              </button>
-            </h2>
-            <div id="collapseExperiencia" class="accordion-collapse collapse" aria-labelledby="headingExperiencia"
-              data-bs-parent="#hojaAccordion">
-              <div class="accordion-body">
-                <!-- ...existing code for experiencia laboral fields and documentos asociados... -->
-                <h1 class="nice-form-group">EMPLEO ACTUAL O CONTRATO</h1>
-                <div class="nice-form-group">
-                  <input type="hidden" name="id_experiencia_0" value="{{empleoActual.id_experiencia}}" />
-                </div>
-                <input type="hidden" name="empleo_actual_0" value="SI" />
-                <div class="nice-form-group">
-                  <label>EMPRESA O ENTIDAD</label>
-                  <input type="text" placeholder="Empresa o Entidad" value="{{empleoActual.empresa_entidad}}"
-                    name="empresa_entidad_0" id="empresa_entidad_0" />
-                </div>
-                <fieldset class="nice-form-group">
-                  <legend>TIPO DE EMPRESA O ENTIDAD</legend>
-                  <div class="nice-form-group">
-                    <input type="radio" name="tipo_0" id="tipo_pu_0" value="PUBLICA" {{#if (eq empleoActual.tipo "PUBLICA"
-                      )}}checked{{/if}} />
-                    <label for="tipo_pu_0">Pública</label>
-                  </div>
-                  <div class="nice-form-group">
-                    <input type="radio" name="tipo_0" id="tipo_pr_0" value="PRIVADA" {{#if (eq empleoActual.tipo "PRIVADA"
-                      )}}checked{{/if}} />
-                    <label for="tipo_pr_0">Privada</label>
-                  </div>
-                </fieldset>
-
-                <div class="nice-form-group">
-                  <label>PAÍS DE LA EMPRESA O ENTIDAD</label>
-                  <input type="text" placeholder="País de la Empresa o Entidad" value="{{empleoActual.pais}}" name="pais_0"
-                    id="pais_0" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>DEPARTAMENTO DE LA EMPRESA O ENTIDAD</label>
-                  <input type="text" placeholder="Departamento de la Empresa o Entidad" value="{{empleoActual.departamento}}"
-                    name="departamento_0" id="departamento_0" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>MUNICIPIO DE LA EMPRESA O ENTIDAD</label>
-                  <input type="text" placeholder="Departamento de la Empresa o Entidad" value="{{empleoActual.municipio}}"
-                    name="municipio_0" id="municipio_0" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>CORREO ELECTRÓNICO DE LA EMPRESA O ENTIDAD</label>
-                  <input type="text" placeholder="Correo Electrónico de la Empresa o Entidad"
-                    value="{{empleoActual.correo_entidad}}" name="correo_entidad_0" id="correo_entidad_0" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>TElÉFONO DE LA EMPRESA O ENTIDAD</label>
-                  <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="{{empleoActual.telefono_entidad}}"
-                    name="telefono_entidad_0" id="telefono_entidad_0" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>FECHA DE INGRESO</label>
-                  <input type="date" name="fecha_ingreso_0" id="fecha_ingreso_0" value="{{empleoActual.fecha_ingreso}}" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>FECHA DE RETIRO</label>
-                  <input type="date" name="fecha_retiro_0" id="fecha_retiro_0" value="{{empleoActual.fecha_retiro}}" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>CARGO O CONTRATO ACTUAL</label>
-                  <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="{{empleoActual.cargo_actual}}"
-                    name="cargo_actual_0" id="cargo_actual_0" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>DEPENDENCIA</label>
-                  <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="{{empleoActual.dependencia}}"
-                    name="dependencia_0" id="dependencia_0" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>DIRECCIÓN</label>
-                  <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="{{empleoActual.direccion}}"
-                    name="direccion_0" id="direccion_0" />
-                </div>
-
-                <div class="nice-form-group">
-                  <label>DOCUMENTO QUE SUSTENTE LA INFORMACIÓN</label>
-                  <input type="file" name="documento_experiencia_0" id="documento_experiencia_0" />
-                  <div style="margin-top: 10px; font-size: 0.9em; color: #555;">
-                    {{#if empleoActual.documento }}
-                    Archivo en la base de datos:
-                    <a target="_blank" style="color: #0011ff;">
-                      {{ empleoActual.documento }}
-                    </a>
-                    {{else}}
-                    No hay ningún archivo en la base de datos
-                    {{/if}}
-                  </div>
-                </div>
-
-                <h1 class="nice-form-group">EMPLEO ANTERIOR O CONTRATO</h1>
-                <div id="empleos-container">
-                  {{#if empleosAnteriores.length}}
-                  {{#each empleosAnteriores}}
-                  <div class="empleos-block">
-                    <input type="hidden" name="empleo_actual_{{add @index 1}}" value="NO" />
-                    <div class="nice-form-group">
-                      <input type="hidden" name="id_experiencia_{{add @index 1}}" value="{{this.id_experiencia}}" />
-                    </div>
-                    <div class="nice-form-group">
-                      <label>EMPRESA O ENTIDAD</label>
-                      <input type="text" placeholder="Empresa o Entidad" value="{{this.empresa_entidad}}"
-                        name="empresa_entidad_{{add @index 1}}" id="empresa_entidad_{{add @index 1}}" />
-                    </div>
-                    <fieldset class="nice-form-group">
-                      <legend>TIPO DE EMPRESA O ENTIDAD</legend>
-                      <div class="nice-form-group">
-                        <input type="radio" name="tipo_{{add @index 1}}" id="tipo_pu_{{add @index 1}}" value="PUBLICA" {{#if (eq
-                          this.tipo "PUBLICA" )}}checked{{/if}} />
-                        <label for="tipo_pu_1">Pública</label>
-                      </div>
-                      <div class="nice-form-group">
-                        <input type="radio" name="tipo_{{add @index 1}}" id="tipo_pr_{{add @index 1}}" value="PRIVADA" {{#if (eq
-                          this.tipo "PRIVADA" )}}checked{{/if}} />
-                        <label for="tipo_pr_{{add @index 1}}">Privada</label>
-                      </div>
-                    </fieldset>
-                    <div class="nice-form-group">
-                      <label>PAÍS DE LA EMPRESA O ENTIDAD</label>
-                      <input type="text" placeholder="País de la Empresa o Entidad" value="{{this.pais}}"
-                        name="pais_{{add @index 1}}" id="pais_{{add @index 1}}" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>DEPARTAMENTO DE LA EMPRESA O ENTIDAD</label>
-                      <input type="text" placeholder="Departamento de la Empresa o Entidad" value="{{this.departamento}}"
-                        name="departamento_{{add @index 1}}" id="departamento_{{add @index 1}}" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>MUNICIPIO DE LA EMPRESA O ENTIDAD</label>
-                      <input type="text" placeholder="Departamento de la Empresa o Entidad" value="{{this.municipio}}"
-                        name="municipio_{{add @index 1}}" id="municipio_{{add @index 1}}" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>CORREO ELECTRÓNICO DE LA EMPRESA O ENTIDAD</label>
-                      <input type="text" placeholder="Correo Electrónico de la Empresa o Entidad"
-                        value="{{this.correo_entidad}}" name="correo_entidad_{{add @index 1}}"
-                        id="correo_entidad_{{add @index 1}}" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>TElÉFONO DE LA EMPRESA O ENTIDAD</label>
-                      <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="{{this.telefono_entidad}}"
-                        name="telefono_entidad_{{add @index 1}}" id="telefono_entidad_{{add @index 1}}" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>FECHA DE INGRESO</label>
-                      <input type="date" name="fecha_ingreso_{{add @index 1}}" id="fecha_ingreso_{{add @index 1}}"
-                        value="{{this.fecha_ingreso}}" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>FECHA DE RETIRO</label>
-                      <input type="date" name="fecha_retiro_{{add @index 1}}" id="fecha_retiro_{{add @index 1}}"
-                        value="{{this.fecha_retiro}}" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>CARGO O CONTRATO ACTUAL</label>
-                      <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="{{this.cargo_actual}}"
-                        name="cargo_actual_{{add @index 1}}" id="cargo_actual_{{add @index 1}}" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>DEPENDENCIA</label>
-                      <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="{{this.dependencia}}"
-                        name="dependencia_{{add @index 1}}" id="dependencia_{{add @index 1}}" />
-                    </div>
-
-                    <div class="nice-form-group pb-2">
-                      <label>DIRECCIÓN</label>
-                      <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="{{this.direccion}}"
-                        name="direccion_{{add @index 1}}" id="direccion_{{add @index 1}}" />
-                    </div>
-                    <div class="nice-form-group">
-                      <label>DOCUMENTO QUE SUSTENTE LA INFORMACIÓN</label>
-                      <input type="file" name="documento_experiencia_{{add @index 1}}"
-                        id="documento_experiencia_{{add @index 1}}" />
-                      <div style="margin-top: 10px; font-size: 0.9em; color: #555;">
-                        {{#if this.documento }}
-                        Archivo en la base de datos:
-                        <a target="_blank" style="color: #0011ff;">
-                          {{ this.documento }}
-                        </a>
-                        {{else}}
-                        No hay ningún archivo en la base de datos
-                        {{/if}}
-                      </div>
-                    </div>
-                  </div>
-
-                  {{/each}}
-                  {{else}}
-                  <div class="empleos-block">
-                    <div class="nice-form-group"></div>
-                    <input type="hidden" name="empleo_actual_1" value="NO" />
-                    <div class="nice-form-group">
-                      <input type="hidden" name="id_experiencia_1" value="" />
-                    </div>
-                    <div class="nice-form-group">
-                      <label>EMPRESA O ENTIDAD</label>
-                      <input type="text" placeholder="Empresa o Entidad" value="" name="empresa_entidad_1"
-                        id="empresa_entidad_1" />
-                    </div>
-
-                    <fieldset class="nice-form-group">
-                      <legend>TIPO DE EMPRESA O ENTIDAD</legend>
-                      <div class="nice-form-group">
-                        <input type="radio" name="tipo_1" id="tipo_pu_1" value="PUBLICA" />
-                        <label for="tipo_pu_1">Pública</label>
-                      </div>
-                      <div class="nice-form-group">
-                        <input type="radio" name="tipo_1" id="tipo_pr_1" value="PRIVADA" />
-                        <label for="tipo_pr_1">Privada</label>
-                      </div>
-                    </fieldset>
-
-                    <div class="nice-form-group">
-                      <label>PAÍS DE LA EMPRESA O ENTIDAD</label>
-                      <input type="text" placeholder="País de la Empresa o Entidad" value="" name="pais_1" id="pais_1" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>DEPARTAMENTO DE LA EMPRESA O ENTIDAD</label>
-                      <input type="text" placeholder="Departamento de la Empresa o Entidad" value="" name="departamento_1"
-                        id="departamento_1" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>MUNICIPIO DE LA EMPRESA O ENTIDAD</label>
-                      <input type="text" placeholder="Departamento de la Empresa o Entidad" value="" name="municipio_1"
-                        id="municipio_1" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>CORREO ELECTRÓNICO DE LA EMPRESA O ENTIDAD</label>
-                      <input type="text" placeholder="Correo Electrónico de la Empresa o Entidad" value=""
-                        name="correo_entidad_1" id="correo_entidad_1" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>TElÉFONO DE LA EMPRESA O ENTIDAD</label>
-                      <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="" name="telefono_entidad_1"
-                        id="telefono_entidad_1" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>FECHA DE INGRESO</label>
-                      <input type="date" name="fecha_ingreso_1" id="fecha_ingreso_1" value="" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>FECHA DE RETIRO</label>
-                      <input type="date" name="fecha_retiro_1" id="fecha_retiro_1" value="" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>CARGO O CONTRATO ACTUAL</label>
-                      <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="" name="cargo_actual_1"
-                        id="cargo_actual_1" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>DEPENDENCIA</label>
-                      <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="" name="dependencia_1"
-                        id="dependencia_1" />
-                    </div>
-
-                    <div class="nice-form-group pb-2">
-                      <label>DIRECCIÓN</label>
-                      <input type="text" placeholder="Teléfono de la Empresa o Entidad" value="" name="direccion_1"
-                        id="direccion_1" />
-                    </div>
-
-                    <div class="nice-form-group">
-                      <label>DOCUMENTO QUE SUSTENTE LA INFORMACIÓN</label>
-                      <input type="file" name="documento_experiencia_1" id="documento_experiencia_1" />
-                      <div style="margin-top: 10px; font-size: 0.9em; color: #555;">
-                        No hay ningún archivo en la base de datos
-                      </div>
-                    </div>
-                  </div>
-
-                  {{/if}}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tiempo de experiencia -->
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="headingTiempo">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTiempo"
-                aria-expanded="false" aria-controls="collapseTiempo">
-                Tiempo de experiencia
-              </button>
-            </h2>
-            <div id="collapseTiempo" class="accordion-collapse collapse" aria-labelledby="headingTiempo"
-              data-bs-parent="#hojaAccordion">
-              <div class="accordion-body">
-                <!-- ...existing code for tiempo_experiencia inputs... -->
-                <div class="nice-form-group">
-                  <label>AÑOS TOTAL DE SERVIDOR PÚBLICO</label>
-                  <input type="number" placeholder="Años Total de Servidor P+ublico"
-                    value="{{tiempo_experiencia.anios_servidor_publico}}" name="anios_servidor_publico"
-                    id="anios_servidor_publico" />
-                </div>
-                <div class="nice-form-group">
-                  <label>MESES TOTAL DE SERVIDOR PÚBLICO</label>
-                  <input type="number" placeholder="Meses Total de Servidor P+ublico"
-                    value="{{tiempo_experiencia.meses_servidor_publico}}" name="meses_servidor_publico"
-                    id="meses_servidor_publico" />
-                </div>
-                <div class="nice-form-group">
-                  <label>AÑOS TOTAL DE EMPLEADO DEL SECTOR PRIVADO</label>
-                  <input type="number" placeholder="Años Total de Empleado del Sector Privado"
-                    value="{{tiempo_experiencia.anios_sector_privado}}" name="anios_sector_privado" id="anios_sector_privado" />
-                </div>
-                <div class="nice-form-group">
-                  <label>MESES TOTAL DE EMPLEADO DEL SECTOR PRIVADO</label>
-                  <input type="number" placeholder="Meses Total de Empleado del Sector Privado"
-                    value="{{tiempo_experiencia.meses_sector_privado}}" name="meses_sector_privado" id="meses_sector_privado" />
-                </div>
-                <div class="nice-form-group">
-                  <label>AÑOS TOTAL DE TRABAJADOR INDEPENDIENTE</label>
-                  <input type="number" placeholder="Años Total de Trabajador Independiente"
-                    value="{{tiempo_experiencia.anios_trabajador_independiente}}" name="anios_trabajador_independiente"
-                    id="anios_trabajador_independiente" />
-                </div>
-                <div class="nice-form-group">
-                  <label>MESES TOTAL DE TRABAJADOR INDEPENDIENTE</label>
-                  <input type="number" placeholder="Meses Total de Trabajador Independiente"
-                    value="{{tiempo_experiencia.meses_trabajador_independiente}}" name="meses_trabajador_independiente"
-                    id="meses_trabajador_independiente" />
-                </div>
-                <div class="nice-form-group">
-                  <label>AÑOS TOTALES DE TIEMPO DE EXPERIENCIA</label>
-                  <input type="number" placeholder="Años Totales de Tiempo de Experiencia"
-                    value="{{tiempo_experiencia.anios_total_experiencia}}" name="anios_total_experiencia"
-                    id="anios_total_experiencia" />
-                </div>
-                <div class="nice-form-group">
-                  <label>MESES TOTALES DE TIEMPO DE EXPERIENCIA</label>
-                  <input type="number" placeholder="Meses Totales de Tiempo de Experiencia"
-                    value="{{tiempo_experiencia.meses_total_experiencia}}" name="meses_total_experiencia"
-                    id="meses_total_experiencia" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Documentos -->
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="headingDocumentos">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDocumentos"
-                aria-expanded="false" aria-controls="collapseDocumentos">
-                Documentos
-              </button>
-            </h2>
-            <div id="collapseDocumentos" class="accordion-collapse collapse" aria-labelledby="headingDocumentos"
-              data-bs-parent="#hojaAccordion">
-              <div class="accordion-body">
-                <!-- ...existing code for documentos upload and list (already present in template) ... -->
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Bottom actions removed: kept only left-side buttons in the fixed navigation -->
-
-      </form>
-    </main>
-  </div>
+            </div> </form>
+    </div>
 </div>
 
 <script>
-  // Initialize: collapse all panels, then show collapseDatos
-  document.addEventListener('DOMContentLoaded', function () {
-    var collapseElems = document.querySelectorAll('.accordion-collapse');
-    collapseElems.forEach(function (el) { var c = new bootstrap.Collapse(el, {toggle: false}); c.hide(); });
-    // show datos
-    var datos = document.getElementById('collapseDatos');
-    if (datos) { new bootstrap.Collapse(datos, {toggle: false}).show(); }
-    // wire list-group links to toggle panels
-    document.querySelectorAll('#leftNav a[data-bs-target]').forEach(function (link) {
-      link.addEventListener('click', function (e) {
-        e.preventDefault();
-        var tgt = document.querySelector(link.getAttribute('data-bs-target'));
-        if (!tgt) return;
-        // hide others
-        collapseElems.forEach(function (el) { try { new bootstrap.Collapse(el, {toggle: false}).hide(); } catch(err) {} });
-        // show target
-        try { new bootstrap.Collapse(tgt, {toggle: false}).show(); } catch(err) { tgt.classList.add('show'); }
-        // mark active
-        document.querySelectorAll('#leftNav a').forEach(a => a.classList.remove('active'));
-        link.classList.add('active');
-      });
-    });
-  });
+    // Función simple para agregar bloques
+    function setupDynamicBlocks(addBtnId, removeBtnId, containerId, blockClass) {
+        const addBtn = document.getElementById(addBtnId);
+        const removeBtn = document.getElementById(removeBtnId);
+        const container = document.getElementById(containerId);
+
+        if(addBtn && container) {
+            addBtn.addEventListener('click', () => {
+                const blocks = container.querySelectorAll('.' + blockClass);
+                if(blocks.length >= 5) return alert('Máximo 5 registros permitidos.');
+                
+                const newBlock = blocks[0].cloneNode(true);
+                const newIndex = blocks.length + (blockClass === 'empleos-block' ? 1 : 0); // Ajuste índice empleos empieza en 1
+                
+                // Limpiar valores y actualizar IDs/Names
+                newBlock.querySelectorAll('input, select').forEach(input => {
+                    if(input.name) input.name = input.name.replace(/_\d+$/, `_${newIndex}`);
+                    if(input.id) input.id = input.id.replace(/_\d+$/, `_${newIndex}`);
+                    input.value = ''; 
+                    if(input.type === 'hidden' && input.name.includes('id_')) input.value = '';
+                });
+
+                container.appendChild(newBlock);
+            });
+        }
+
+        if(removeBtn && container) {
+            removeBtn.addEventListener('click', () => {
+                const blocks = container.querySelectorAll('.' + blockClass);
+                if(blocks.length > 1) {
+                    container.removeChild(blocks[blocks.length - 1]);
+                } else {
+                    // Si es el último, solo limpiar inputs
+                    blocks[0].querySelectorAll('input').forEach(i => i.value = '');
+                }
+            });
+        }
+    }
+
+    // Inicializar lógica dinámica
+    setupDynamicBlocks('add-academic', 'remove-academic', 'academic-container', 'academic-block');
+    setupDynamicBlocks('add-language', 'remove-language', 'languages-container', 'language-block');
+    setupDynamicBlocks('add-empleos', 'remove-empleos', 'empleos-container', 'empleos-block');
+
+    function enviarFormulario() {
+        document.getElementById('datos-form').submit();
+    }
+
+    function descargarPDF() {
+        // Tu lógica original de fetch
+        window.location.href = '/hoja/generar-pdf'; 
+    }
 </script>
