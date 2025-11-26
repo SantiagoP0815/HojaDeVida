@@ -37,7 +37,23 @@ function getServerIps() {
 }
 
 // Settings and middleware (security)
-app.use(helmet());
+// CONFIGURACIÓN DE SEGURIDAD AJUSTADA PARA PERMITIR SCRIPTS
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+      scriptSrcAttr: ["'unsafe-inline'"], // Esto permite los onclick="..."
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://use.fontawesome.com"],
+      fontSrc: ["'self'", "https://use.fontawesome.com", "https://cdn.jsdelivr.net"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Necesario para evitar bloqueos de recursos cruzados
+}));
+
+app.use(cors());
 app.use(cors());
 
 // Rate limiter

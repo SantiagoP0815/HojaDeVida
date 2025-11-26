@@ -2,159 +2,295 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Roboto:wght@400;500&display=swap');
 
 :root {
-    --primary-color: #3b4ce2;
-    --accent-color: #10b981;
-    --text-dark: #333;
-    --bg-light: #f8f9fa;
-}
-
-* {
-    box-sizing: border-box;
+    --sidebar-width: 260px; /* Un poco más angosta para elegancia */
+    --header-height: 70px;
+    --primary: #3b4ce2;
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.6);
+    --gap-size: 20px; /* Espacio entre cajas y bordes */
 }
 
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #f5f6fa;
+    background-color: var(--bg-light);
+    overflow-x: hidden;
     /* El padding-top ya está en main.hbs, aquí no lo repetimos */
 }
 
-/* --- DISEÑO DE LA PÁGINA DE EDICIÓN (NUEVO) --- */
-.edit-layout-container {
-    /* Altura exacta: Pantalla - Barra de navegación (70px) */
-    height: calc(100vh - 70px);
-    width: 100%;
-    overflow: hidden; /* Evita scroll en el contenedor padre */
-    display: flex;
+/* Navbar semi-transparente con efecto blur (desenfoque) */
+.navbar {
+    background-color: rgba(0, 0, 0, 0.85) !important; /* 85% de opacidad */
+    backdrop-filter: blur(10px); /* Efecto de vidrio esmerilado */
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
-/* Barra Lateral */
-.sidebar-menu {
-    background-color: #ffffff;
-    border-right: 1px solid #e0e0e0;
+
+/* --- ESTILOS DE PORTADA (Index) --- */
+/* Mantenemos lo que arreglamos para la Landing Page */
+.index {
+    width: 100%;
+    height: 100vh;
+    margin-top: -70px;
+    overflow: hidden;
+    position: relative;
+}
+
+.masthead {
+    width: 100%;
     height: 100%;
+    background: url('/img/IGLESIA.jpg') no-repeat center center;
+    background-size: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1;
+}
+
+.masthead .container {
+    position: relative;
+    z-index: 2;
+}
+
+.info-cards-row {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.info-card {
+    background: rgba(255, 255, 255, 0.1); /* Muy transparente */
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 2rem;
+    color: white;
+    text-align: center;
+    transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-10px); /* Efecto de elevación al pasar el mouse */
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.card-icon {
+    font-size: 2.5rem;
+    color: #4ade80; /* Color verde acento */
+    margin-bottom: 1rem;
+}
+
+/* CONTENEDOR PRINCIPAL: Fijo, sin scroll en el body */
+.editor-layout {
+    display: flex;
+    width: 100%;
+    /* Altura exacta: 100% de la ventana menos el navbar */
+    height: calc(100vh - var(--header-height));
+    /* Padding para que las cajas no toquen los bordes (efecto flotante) */
+    padding: var(--gap-size);
+    /* Separación entre la barra y el contenido */
+    gap: var(--gap-size);
+    /* Evita que se salga nada de la pantalla */
+    overflow: hidden;
+    background: transparent;
+}
+
+/* --- CAJA IZQUIERDA (MENÚ) --- */
+.editor-sidebar {
+    width: var(--sidebar-width);
+    height: 100%; /* Ocupa toda la altura disponible del contenedor */
+    
+    /* Estilos Vidrio */
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid var(--glass-border);
+    
+    /* BORDES REDONDOS */
+    border-radius: 15px;
+    
     display: flex;
     flex-direction: column;
     padding: 1.5rem;
-    box-shadow: 4px 0 15px rgba(0,0,0,0.02);
-    z-index: 10;
-    min-width: 280px; /* Ancho fijo cómodo */
+    
+    /* Si la pantalla es muy bajita, permite scroll interno solo aquí */
+    overflow-y: auto; 
+    flex-shrink: 0;
+    z-index: 50;
+    
+    /* Sombra suave */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
 }
 
-/* Botones de navegación (Pills) */
-.nav-pills .nav-link {
-    color: #555;
-    font-weight: 500;
+/* Botones del menú */
+.menu-btn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    text-align: left;
     padding: 12px 15px;
     margin-bottom: 8px;
+    border: none;
+    background: transparent;
     border-radius: 10px;
+    color: #444;
+    font-weight: 600;
+    cursor: pointer;
     transition: all 0.2s ease;
-    text-align: left;
 }
 
-.nav-pills .nav-link:hover {
-    background-color: #f0f2f5;
-    color: var(--primary-color);
+.menu-btn:hover {
+    background: rgba(59, 76, 226, 0.1);
+    color: var(--primary);
 }
 
-.nav-pills .nav-link.active {
-    background-color: var(--primary-color);
+.menu-btn.active {
+    background: var(--primary);
     color: #fff;
     box-shadow: 0 4px 10px rgba(59, 76, 226, 0.3);
 }
 
-.nav-pills .nav-link i, 
-.nav-pills .nav-link svg {
-    margin-right: 10px;
-    width: 20px;
-    text-align: center;
+.menu-btn i { 
+    width: 25px; 
+    text-align: center; 
+    margin-right: 10px; 
+    font-size: 1.1rem;
 }
 
-/* Área de Contenido (Formulario) */
-.content-area {
-    flex: 1; /* Ocupa el resto del espacio */
-    height: 100%;
-    overflow-y: auto; /* Scroll SOLO aquí */
-    padding: 2rem 3rem;
-    background-color: #f5f6fa;
-}
-
-/* Contenedor blanco del formulario */
-.form-card {
-    background: #fff;
-    padding: 2.5rem;
+/* --- CAJA DERECHA (CONTENIDO) --- */
+.editor-content {
+    flex: 1; /* Toma el resto del espacio */
+    height: 100%; /* Ocupa toda la altura disponible */
+    
+    /* AQUÍ ES DONDE OCURRE EL SCROLL DEL FORMULARIO */
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    
+    /* Bordes redondos para que coincida con el sidebar */
     border-radius: 15px;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
-    margin-bottom: 3rem; /* Espacio al final para no cortar */
+    
+    /* Para que el scrollbar no se vea feo en bordes redondos */
+    padding-right: 5px; 
 }
 
-/* Títulos de sección */
+/* Personalización del Scrollbar (Chrome/Edge/Safari) */
+.editor-content::-webkit-scrollbar {
+    width: 8px;
+}
+.editor-content::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+}
+.editor-content::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.2);
+    border-radius: 4px;
+}
+.editor-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,0,0,0.4);
+}
+
+/* --- TARJETAS DEL FORMULARIO --- */
+.form-card {
+    background: rgba(255, 255, 255, 0.93);
+    backdrop-filter: blur(10px);
+    border-radius: 15px; /* Coincide con el estilo general */
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--glass-border);
+}
+
 .section-title {
-    color: var(--primary-color);
-    font-weight: 700;
-    margin-bottom: 1.5rem;
+    color: var(--primary);
+    font-weight: 800;
+    border-bottom: 2px solid #e0e0e0;
     padding-bottom: 1rem;
-    border-bottom: 2px solid #f0f0f0;
-    display: flex;
-    align-items: center;
-}
-
-.section-title svg {
-    margin-right: 10px;
-}
-
-/* --- ESTILOS DE TUS INPUTS (NICE-FORM-GROUP) --- */
-/* Mantenemos estos estilos originales para que tus inputs se vean bien */
-.nice-form-group {
     margin-bottom: 1.5rem;
-}
-.nice-form-group > label {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #444;
-    margin-bottom: 0.5rem;
-    display: block;
-}
-.nice-form-group > input, 
-.nice-form-group > select, 
-.nice-form-group > textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ced4da;
-    border-radius: 8px;
-    background-color: #fff;
-    transition: border-color 0.15s ease-in-out;
-}
-.nice-form-group > input:focus {
-    border-color: var(--primary-color);
-    outline: 0;
+    text-transform: uppercase;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
 }
 
-/* Estilos para bloques dinámicos (educación, empleos) */
-.dynamic-block {
-    background: #fcfcfc;
-    border: 1px solid #eef0f2;
-    border-radius: 10px;
+/* Animaciones */
+.seccion-tab { display: none; animation: fadeIn 0.3s ease; }
+.seccion-tab.active { display: block !important; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Bloques internos */
+.dynamic-item {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-left: 4px solid var(--primary);
+    border-radius: 8px;
     padding: 1.5rem;
     margin-bottom: 1.5rem;
-    position: relative;
-}
-.dynamic-block::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 15px;
-    bottom: 15px;
-    width: 4px;
-    background: var(--primary-color);
-    border-radius: 0 4px 4px 0;
 }
 
-/* --- ESTILOS DE PORTADA (Index) --- */
-/* Mantenemos lo que arreglamos para la Landing Page */
-.index { width: 100%; height: calc(100vh - 70px); overflow: hidden; position: relative; }
-.masthead { width: 100%; height: 100%; background: url('/img/IGLESIA.jpg') no-repeat center center; background-size: cover; display: flex; align-items: center; justify-content: center; position: relative; }
-.overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1; }
-.masthead .container { position: relative; z-index: 2; }
-.info-cards-row { display: flex; gap: 20px; justify-content: center; margin-top: 2rem; }
-.info-card { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 1.5rem; color: white; text-align: center; flex: 1; min-width: 250px; max-width: 300px; }
-.card-icon { font-size: 2rem; color: #4ade80; margin-bottom: 1rem; }
+.form-control, .form-select {
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    border: 1px solid #ced4da;
+}
+
+.form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(59, 76, 226, 0.1);
+}
+
+/* --- MÓVIL (Resetear layout fijo para que sea scrolleable) --- */
+@media (max-width: 768px) {
+    .editor-layout {
+        flex-direction: column;
+        height: auto; /* En móvil sí dejamos que crezca */
+        overflow: visible;
+        padding: 10px;
+        gap: 15px;
+    }
+
+    .editor-sidebar {
+        width: 100%;
+        height: auto;
+        border-radius: 15px;
+        flex-direction: row;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 10px;
+        position: sticky;
+        top: 80px; /* Debajo del navbar */
+    }
+
+    .menu-btn {
+        width: auto;
+        margin-bottom: 0;
+        margin-right: 10px;
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        border: 1px solid #ddd;
+    }
+
+    .sidebar-actions { display: none; }
+    .editor-content { overflow: visible; height: auto; border-radius: 0; }
+    
+    .mobile-fab {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        gap: 10px;
+    }
+}
