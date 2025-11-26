@@ -1,360 +1,576 @@
-<div class="edit-layout-container">
-    
-    <div class="sidebar-menu">
-        <h5 class="text-muted mb-4 ps-2">Menú de Edición</h5>
-        
-        <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-            <button class="nav-link active" id="v-pills-datos-tab" data-bs-toggle="pill" data-bs-target="#v-pills-datos" type="button" role="tab">
-                <i class="fas fa-user-circle"></i> Datos Personales
-            </button>
-            <button class="nav-link" id="v-pills-formacion-tab" data-bs-toggle="pill" data-bs-target="#v-pills-formacion" type="button" role="tab">
-                <i class="fas fa-graduation-cap"></i> Formación Académica
-            </button>
-            <button class="nav-link" id="v-pills-idiomas-tab" data-bs-toggle="pill" data-bs-target="#v-pills-idiomas" type="button" role="tab">
-                <i class="fas fa-language"></i> Idiomas
-            </button>
-            <button class="nav-link" id="v-pills-experiencia-tab" data-bs-toggle="pill" data-bs-target="#v-pills-experiencia" type="button" role="tab">
-                <i class="fas fa-briefcase"></i> Experiencia Laboral
-            </button>
-            <button class="nav-link" id="v-pills-tiempo-tab" data-bs-toggle="pill" data-bs-target="#v-pills-tiempo" type="button" role="tab">
-                <i class="fas fa-clock"></i> Tiempo Total
-            </button>
-        </div>
+<style>
+    body {
+        /* Fondo fijo que cubre todo */
+        background: url('/img/paramoaire.jpg') no-repeat center center fixed !important;
+        background-size: cover !important;
+        /* Evitamos doble scrollbar */
+        overflow: hidden;
+    }
 
-        <div class="mt-auto pt-4 border-top">
+    /* En móvil reactivamos el scroll del body */
+    @media (max-width: 768px) {
+        body {
+            overflow: auto;
+        }
+    }
+
+    /* Limpiar contenedores padres */
+    .container-main,
+    main,
+    .main-layout {
+        background: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        height: 100%;
+    }
+</style>
+
+<div class="editor-layout">
+
+    <aside class="editor-sidebar">
+        <h5 class="mb-4 text-secondary ps-2 d-none d-md-block fw-bold" style="font-size: 0.9rem; letter-spacing: 1px;">
+            NAVEGACIÓN</h5>
+
+        <button type="button" class="menu-btn active" onclick="mostrarSeccion('datos', this)">
+            <i class="fas fa-id-card"></i>
+            <span>Datos Personales</span>
+        </button>
+        <button type="button" class="menu-btn" onclick="mostrarSeccion('formacion', this)">
+            <i class="fas fa-graduation-cap"></i>
+            <span>Formación</span>
+        </button>
+        <button type="button" class="menu-btn" onclick="mostrarSeccion('experiencia', this)">
+            <i class="fas fa-briefcase"></i>
+            <span>Experiencia</span>
+        </button>
+        <button type="button" class="menu-btn" onclick="mostrarSeccion('tiempo', this)">
+            <i class="fas fa-clock"></i>
+            <span>Tiempo Total</span>
+        </button>
+        <button type="button" class="menu-btn" onclick="mostrarSeccion('documentos', this)">
+            <i class="fas fa-folder-open"></i>
+            <span>Soportes</span>
+        </button>
+
+        <div class="sidebar-actions mt-auto pt-4 border-top d-none d-md-block">
             <button type="button" class="btn btn-success w-100 mb-2 shadow-sm" onclick="enviarFormulario()">
-                <i class="fas fa-save me-2"></i> Guardar Todo
+                <i class="fas fa-save me-2"></i> GUARDAR
             </button>
-            <button type="button" class="btn btn-primary w-100 mb-2 shadow-sm" onclick="descargarPDF()">
-                <i class="fas fa-file-pdf me-2"></i> Descargar PDF
-            </button>
-            <button type="button" class="btn btn-outline-secondary w-100 btn-sm" onclick="window.open('/hoja/view/{{user.unique_identifier}}', '_blank')">
-                <i class="fas fa-share-alt me-2"></i> Compartir Enlace
+            <button type="button" class="btn btn-primary w-100 shadow-sm" onclick="descargarPDF()">
+                <i class="fas fa-file-pdf me-2"></i> PDF
             </button>
         </div>
-    </div>
+    </aside>
 
-    <div class="content-area">
-        <form id="datos-form" action="/hoja/insertar-datos" method="POST" enctype="multipart/form-data">
-            
-            <div class="tab-content" id="v-pills-tabContent">
-                
-                <div class="tab-pane fade show active" id="v-pills-datos" role="tabpanel">
-                    <div class="form-card">
-                        <h2 class="section-title"><i class="fas fa-user-edit"></i> Datos Personales</h2>
-                        
-                        <div class="row">
-                            <div class="col-md-6 nice-form-group">
-                                <label>Nombres</label>
-                                <input type="text" name="nombres" value="{{user.nombres}}" required />
+    <div class="editor-content">
+        <form id="hojaForm" action="/hoja/insertar-datos" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="_csrf" value="{{csrfToken}}">
+
+            <div id="sec-datos" class="seccion-tab active">
+                <div class="form-card">
+                    <h2 class="section-title">1. DATOS PERSONALES</h2>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Primer Apellido</label><input type="text"
+                                class="form-control" name="primer_apellido" value="{{user.primer_apellido}}" required>
+                        </div>
+                        <div class="col-md-6"><label class="form-label">Segundo Apellido</label><input type="text"
+                                class="form-control" name="segundo_apellido" value="{{user.segundo_apellido}}"></div>
+                        <div class="col-12"><label class="form-label">Nombres</label><input type="text"
+                                class="form-control" name="nombres" value="{{user.nombres}}" required></div>
+                    </div>
+                    <hr class="my-4">
+                    <h6 class="fw-bold text-muted mb-3">DOCUMENTO DE IDENTIFICACIÓN</h6>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Tipo</label>
+                            <select class="form-select" name="tipo_documento" required>
+                                <option value="C.C" {{#if (eq user.tipo_documento "C.C" )}}selected{{/if}}>C.C</option>
+                                <option value="C.E" {{#if (eq user.tipo_documento "C.E" )}}selected{{/if}}>C.E</option>
+                                <option value="PAS" {{#if (eq user.tipo_documento "PAS" )}}selected{{/if}}>PAS</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Número</label>
+                            <input type="text" class="form-control" name="numero_documento"
+                                value="{{user.numero_documento}}" required>
+                        </div>
+
+                        <div class="col-md-5">
+                            <label class="form-label">Sexo</label>
+                            <div class="d-flex gap-2 mt-1">
+                                <input type="radio" class="btn-check" name="sexo" id="sexoM" value="M" {{#if (eq
+                                    user.sexo "M" )}}checked{{/if}}>
+                                <label class="btn btn-outline-primary flex-fill" for="sexoM"><i class="fas fa-male"></i>
+                                    Masculino</label>
+
+                                <input type="radio" class="btn-check" name="sexo" id="sexoF" value="F" {{#if (eq
+                                    user.sexo "F" )}}checked{{/if}}>
+                                <label class="btn btn-outline-primary flex-fill" for="sexoF"><i
+                                        class="fas fa-female"></i> Femenino</label>
                             </div>
-                            <div class="col-md-6 nice-form-group">
-                                <label>Primer Apellido</label>
-                                <input type="text" name="primer_apellido" value="{{user.primer_apellido}}" required />
-                            </div>
-                            <div class="col-md-6 nice-form-group">
-                                <label>Segundo Apellido</label>
-                                <input type="text" name="segundo_apellido" value="{{user.segundo_apellido}}" />
-                            </div>
-                            <div class="col-md-6 nice-form-group">
-                                <label>Teléfono</label>
-                                <input type="tel" name="telefono" value="{{user.telefono}}" />
-                            </div>
-                            <div class="col-md-12 nice-form-group">
-                                <label>Email</label>
-                                <input type="email" name="email" value="{{user.email}}" />
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-6">
+                            <label class="form-label">Nacionalidad</label>
+                            <div class="d-flex gap-2 mt-1">
+                                <input type="radio" class="btn-check" name="nacionalidad" id="nacCol" value="COLOMBIANO"
+                                    {{#if (eq user.nacionalidad "COLOMBIANO" )}}checked{{/if}}
+                                    onchange="togglePais(this)">
+                                <label class="btn btn-outline-secondary flex-fill" for="nacCol">Colombiano</label>
+
+                                <input type="radio" class="btn-check" name="nacionalidad" id="nacExt" value="EXTRANJERO"
+                                    {{#if (eq user.nacionalidad "EXTRANJERO" )}}checked{{/if}}
+                                    onchange="togglePais(this)">
+                                <label class="btn btn-outline-secondary flex-fill" for="nacExt">Extranjero</label>
                             </div>
                         </div>
 
-                        <hr class="my-4">
-
-                        <div class="row">
-                            <div class="col-md-4 nice-form-group">
-                                <label>Tipo Documento</label>
-                                <select name="tipo_documento" class="form-control">
-                                    <option value="C.C" {{#if (eq user.tipo_documento "C.C")}}selected{{/if}}>Cédula de Ciudadanía</option>
-                                    <option value="C.E" {{#if (eq user.tipo_documento "C.E")}}selected{{/if}}>Cédula de Extranjería</option>
-                                    <option value="PAS" {{#if (eq user.tipo_documento "PAS")}}selected{{/if}}>Pasaporte</option>
-                                </select>
-                            </div>
-                            <div class="col-md-8 nice-form-group">
-                                <label>Número Documento</label>
-                                <input type="text" name="numero_documento" value="{{user.numero_documento}}" required />
-                            </div>
-                            <div class="col-md-12 nice-form-group">
-                                <label>Documento Escaneado</label>
-                                <input type="file" name="documento_id" />
-                                {{#if user.nombre_original_archivo}}
-                                    <small class="text-success d-block mt-1"><i class="fas fa-check-circle"></i> Archivo actual: {{user.nombre_original_archivo}}</small>
-                                {{/if}}
-                            </div>
+                        <div class="col-md-6">
+                            <label class="form-label">País</label>
+                            <input type="text" class="form-control" id="inputPais" name="pais" value="{{user.pais}}">
                         </div>
-
-                        <hr class="my-4">
-                        
-                        <h5 class="mb-3">Lugar de Nacimiento</h5>
-                        <div class="row">
-                            <div class="col-md-4 nice-form-group"><label>País</label><input type="text" name="pais_nacimiento" value="{{user.pais_nacimiento}}" /></div>
-                            <div class="col-md-4 nice-form-group"><label>Departamento</label><input type="text" name="departamento_nacimiento" value="{{user.departamento_nacimiento}}" /></div>
-                            <div class="col-md-4 nice-form-group"><label>Municipio</label><input type="text" name="municipio_nacimiento" value="{{user.municipio_nacimiento}}" /></div>
-                            <div class="col-md-6 nice-form-group"><label>Fecha Nacimiento</label><input type="date" name="fecha_nacimiento" value="{{user.fecha_nacimiento}}" /></div>
+                    </div>
+                    <hr class="my-4">
+                    <h6 class="fw-bold text-muted mb-3">LIBRETA MILITAR</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Clase</label>
+                            <select class="form-select" name="tipo_libreta_militar">
+                                <option value="">Seleccione...</option>
+                                <option value="PRIMERA CLASE" {{#if (eq user.tipo_libreta_militar "PRIMERA CLASE"
+                                    )}}selected{{/if}}>Primera Clase</option>
+                                <option value="SEGUNDA CLASE" {{#if (eq user.tipo_libreta_militar "SEGUNDA CLASE"
+                                    )}}selected{{/if}}>Segunda Clase</option>
+                            </select>
                         </div>
-                        
-                        <div class="nice-form-group mt-3">
-                            <label>Dirección Correspondencia</label>
-                            <input type="text" name="direccion_correspondencia" value="{{user.direccion_correspondencia}}" />
+                        <div class="col-md-4"><label class="form-label">Número</label><input type="text"
+                                class="form-control" name="numero_libreta_militar"
+                                value="{{user.numero_libreta_militar}}"></div>
+                        <div class="col-md-4"><label class="form-label">D.M</label><input type="text"
+                                class="form-control" name="dm_libreta_militar" value="{{user.dm_libreta_militar}}">
                         </div>
+                    </div>
+                    <hr class="my-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <h6 class="fw-bold text-muted">FECHA Y LUGAR DE NACIMIENTO</h6>
+                        </div>
+                        <div class="col-md-3"><label class="form-label">Fecha</label><input type="date"
+                                class="form-control" name="fecha_nacimiento" value="{{user.fecha_nacimiento}}"></div>
+                        <div class="col-md-3"><label class="form-label">País</label><input type="text"
+                                class="form-control" name="pais_nacimiento" value="{{user.pais_nacimiento}}"></div>
+                        <div class="col-md-3"><label class="form-label">Depto</label><input type="text"
+                                class="form-control" name="departamento_nacimiento"
+                                value="{{user.departamento_nacimiento}}"></div>
+                        <div class="col-md-3"><label class="form-label">Municipio</label><input type="text"
+                                class="form-control" name="municipio_nacimiento" value="{{user.municipio_nacimiento}}">
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-3">
+                        <div class="col-12">
+                            <h6 class="fw-bold text-muted">DIRECCIÓN DE CORRESPONDENCIA</h6>
+                        </div>
+                        <div class="col-12"><label class="form-label">Dirección</label><input type="text"
+                                class="form-control" name="direccion_correspondencia"
+                                value="{{user.direccion_correspondencia}}"></div>
+                        <div class="col-md-4"><label class="form-label">País</label><input type="text"
+                                class="form-control" name="pais_correspondencia" value="{{user.pais_correspondencia}}">
+                        </div>
+                        <div class="col-md-4"><label class="form-label">Depto</label><input type="text"
+                                class="form-control" name="departamento_correspondencia"
+                                value="{{user.departamento_correspondencia}}"></div>
+                        <div class="col-md-4"><label class="form-label">Municipio</label><input type="text"
+                                class="form-control" name="municipio_correspondencia"
+                                value="{{user.municipio_correspondencia}}"></div>
+                        <div class="col-md-6"><label class="form-label">Teléfono</label><input type="tel"
+                                class="form-control" name="telefono" value="{{user.telefono}}"></div>
+                        <div class="col-md-6"><label class="form-label">Email</label><input type="email"
+                                class="form-control" name="email" value="{{user.email}}"></div>
                     </div>
                 </div>
+                <div class="text-end mb-5">
+                    <button type="button" class="btn btn-primary shadow-sm"
+                        onclick="mostrarSeccion('formacion')">Siguiente <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
 
-                <div class="tab-pane fade" id="v-pills-formacion" role="tabpanel">
-                    <div class="form-card">
-                        <h2 class="section-title"><i class="fas fa-graduation-cap"></i> Educación Básica y Media</h2>
-                        <div class="nice-form-group">
-                            <label>Último grado aprobado (1-11)</label>
-                            <div class="d-flex flex-wrap gap-2 mt-2">
-                                {{#each (range 1 12)}}
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="educacion_basica" id="grado_{{this}}" value="{{this}}" {{#if (eq ../educacion_basica_media.educacion_basica (add "" this))}}checked{{/if}}>
-                                    <label class="form-check-label" for="grado_{{this}}">{{this}}°</label>
-                                </div>
-                                {{/each}}
+            <div id="sec-formacion" class="seccion-tab">
+                <div class="form-card">
+                    <h2 class="section-title">2. FORMACIÓN ACADÉMICA</h2>
+                    <div class="p-3 mb-4 rounded border bg-white">
+                        <h6 class="fw-bold">EDUCACIÓN BÁSICA Y MEDIA</h6>
+                        <p class="small text-muted mb-2">Marque el último grado aprobado:</p>
+                        <div class="d-flex flex-wrap gap-2 mb-3 justify-content-center justify-content-md-start">
+                            {{#each (range 1 12)}}
+                            <div class="flex-grow-0">
+                                <input type="radio" class="btn-check" name="educacion_basica" id="grado_{{this}}"
+                                    value="{{this}}" {{#if (eq ../educacion_basica_media.educacion_basica (add ""
+                                    this))}}checked{{/if}}>
+                                <label class="btn btn-outline-primary fw-bold" for="grado_{{this}}"
+                                    style="width: 50px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                    {{this}}°
+                                </label>
                             </div>
+                            {{/each}}
                         </div>
-                        <div class="row">
-                            <div class="col-md-8 nice-form-group">
-                                <label>Título Obtenido (Bachiller)</label>
-                                <input type="text" name="titulo_obtenido" value="{{educacion_basica_media.titulo_obtenido}}" />
-                            </div>
-                            <div class="col-md-4 nice-form-group">
-                                <label>Fecha Grado</label>
-                                <input type="month" name="fecha_grado" value="{{educacion_basica_media.fecha_grado}}" />
-                            </div>
+                        <div class="row g-3">
+                            <div class="col-md-8"><label class="form-label">Título Obtenido</label><input type="text"
+                                    class="form-control" name="titulo_obtenido"
+                                    value="{{educacion_basica_media.titulo_obtenido}}"></div>
+                            <div class="col-md-4"><label class="form-label">Fecha Grado</label><input type="month"
+                                    class="form-control" name="fecha_grado"
+                                    value="{{educacion_basica_media.fecha_grado}}"></div>
                         </div>
                     </div>
+                    <h6 class="fw-bold mt-4 mb-3">EDUCACIÓN SUPERIOR</h6>
+                    <div id="container-estudios">
+                        {{#if educacion_superior.length}}
+                        {{#each educacion_superior}}
+                        {{> estudioItem index=@index data=this}}
+                        {{/each}}
+                        {{else}}
+                        {{> estudioItem index=0}}
+                        {{/if}}
+                    </div>
+                    <button type="button" class="btn btn-outline-success btn-sm mt-2"
+                        onclick="agregarBloque('container-estudios', 'estudio-item')"><i class="fas fa-plus"></i>
+                        Agregar Estudio</button>
+                    <hr class="my-4">
+                    <h6 class="fw-bold mb-3">IDIOMAS</h6>
+                    <div id="container-idiomas">
+                        {{#if idiomas.length}}
+                        {{#each idiomas}}
+                        {{> idiomaItem index=@index data=this}}
+                        {{/each}}
+                        {{else}}
+                        {{> idiomaItem index=0}}
+                        {{/if}}
+                    </div>
+                    <button type="button" class="btn btn-outline-success btn-sm mt-2"
+                        onclick="agregarBloque('container-idiomas', 'idioma-item')"><i class="fas fa-plus"></i> Agregar
+                        Idioma</button>
+                </div>
+            </div>
 
-                    <div class="form-card">
-                        <h2 class="section-title"><i class="fas fa-university"></i> Educación Superior</h2>
-                        <div id="academic-container">
-                            {{#if educacion_superior.length}}
-                                {{#each educacion_superior}}
-                                <div class="dynamic-block academic-block">
-                                    <input type="hidden" name="id_educacion_superior_{{@index}}" value="{{this.id_educacion_superior}}" />
-                                    <div class="row">
-                                        <div class="col-md-6 nice-form-group">
-                                            <label>Modalidad</label>
-                                            <select name="modalidad_academica_{{@index}}">
-                                                <option value="UNIVERSITARIA" {{#if (eq this.modalidad_academica "UNIVERSITARIA")}}selected{{/if}}>Universitaria</option>
-                                                <option value="TECNICA" {{#if (eq this.modalidad_academica "TECNICA")}}selected{{/if}}>Técnica</option>
-                                                <option value="TECNOLOGA" {{#if (eq this.modalidad_academica "TECNOLOGA")}}selected{{/if}}>Tecnológica</option>
-                                                <option value="ESPECIALIZACION" {{#if (eq this.modalidad_academica "ESPECIALIZACION")}}selected{{/if}}>Especialización</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6 nice-form-group">
-                                            <label>Título Obtenido</label>
-                                            <input type="text" name="nombre_titulo_{{@index}}" value="{{this.nombre_titulo}}" />
-                                        </div>
-                                    </div>
-                                    <div class="nice-form-group">
-                                        <label>Soporte (PDF/Imagen)</label>
-                                        <input type="file" name="documento_educacion_superior_{{@index}}" />
-                                    </div>
+            <div id="sec-experiencia" class="seccion-tab">
+                <div class="form-card">
+                    <h2 class="section-title">3. EXPERIENCIA LABORAL</h2>
+                    <h6 class="text-primary fw-bold mt-2">EMPLEO ACTUAL</h6>
+                    <div class="border border-primary border-opacity-50 rounded p-3 mb-4 bg-white">
+                        <input type="hidden" name="id_experiencia_0" value="{{empleoActual.id_experiencia}}">
+                        <input type="hidden" name="empleo_actual_0" value="SI">
+                        <div class="row g-3">
+                            <div class="col-md-8"><label class="form-label">Empresa</label><input type="text"
+                                    class="form-control" name="empresa_entidad_0"
+                                    value="{{empleoActual.empresa_entidad}}"></div>
+                            <div class="col-md-4">
+                                <label class="form-label">Tipo de Entidad</label>
+                                <div class="d-flex gap-2 mt-1">
+                                    <input type="radio" class="btn-check" name="tipo_0" id="tipo_pub_0" value="PUBLICA"
+                                        {{#if (eq empleoActual.tipo "PUBLICA" )}}checked{{/if}}>
+                                    <label class="btn btn-outline-success btn-sm flex-fill"
+                                        for="tipo_pub_0">Pública</label>
+
+                                    <input type="radio" class="btn-check" name="tipo_0" id="tipo_priv_0" value="PRIVADA"
+                                        {{#if (eq empleoActual.tipo "PRIVADA" )}}checked{{/if}}>
+                                    <label class="btn btn-outline-secondary btn-sm flex-fill"
+                                        for="tipo_priv_0">Privada</label>
                                 </div>
-                                {{/each}}
-                            {{else}}
-                                <div class="dynamic-block academic-block">
-                                    <input type="hidden" name="id_educacion_superior_0" value="" />
-                                    <div class="row">
-                                        <div class="col-md-6 nice-form-group">
-                                            <label>Modalidad</label>
-                                            <select name="modalidad_academica_0">
-                                                <option value="UNIVERSITARIA">Universitaria</option>
-                                                <option value="TECNICA">Técnica</option>
-                                                <option value="TECNOLOGA">Tecnológica</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6 nice-form-group">
-                                            <label>Título Obtenido</label>
-                                            <input type="text" name="nombre_titulo_0" />
-                                        </div>
-                                    </div>
-                                    <div class="nice-form-group">
-                                        <label>Soporte</label>
-                                        <input type="file" name="documento_educacion_superior_0" />
-                                    </div>
-                                </div>
-                            {{/if}}
+                            </div>
+                            <div class="col-md-4"><label class="form-label">País</label><input type="text"
+                                    class="form-control" name="pais_0" value="{{empleoActual.pais}}"></div>
+                            <div class="col-md-4"><label class="form-label">Depto</label><input type="text"
+                                    class="form-control" name="departamento_0" value="{{empleoActual.departamento}}">
+                            </div>
+                            <div class="col-md-4"><label class="form-label">Municipio</label><input type="text"
+                                    class="form-control" name="municipio_0" value="{{empleoActual.municipio}}"></div>
+                            <div class="col-md-6"><label class="form-label">Correo</label><input type="email"
+                                    class="form-control" name="correo_entidad_0"
+                                    value="{{empleoActual.correo_entidad}}"></div>
+                            <div class="col-md-6"><label class="form-label">Teléfonos</label><input type="text"
+                                    class="form-control" name="telefono_entidad_0"
+                                    value="{{empleoActual.telefono_entidad}}"></div>
+                            <div class="col-md-6"><label class="form-label">Ingreso</label><input type="date"
+                                    class="form-control" name="fecha_ingreso_0" value="{{empleoActual.fecha_ingreso}}">
+                            </div>
+                            <div class="col-md-6"><label class="form-label">Retiro</label><input type="date"
+                                    class="form-control" name="fecha_retiro_0" value="{{empleoActual.fecha_retiro}}">
+                            </div>
+                            <div class="col-md-6"><label class="form-label">Cargo</label><input type="text"
+                                    class="form-control" name="cargo_actual_0" value="{{empleoActual.cargo_actual}}">
+                            </div>
+                            <div class="col-md-6"><label class="form-label">Dependencia</label><input type="text"
+                                    class="form-control" name="dependencia_0" value="{{empleoActual.dependencia}}">
+                            </div>
+                            <div class="col-12"><label class="form-label">Dirección</label><input type="text"
+                                    class="form-control" name="direccion_0" value="{{empleoActual.direccion}}"></div>
+                            <div class="col-12"><label class="form-label text-primary">Soporte</label><input type="file"
+                                    class="form-control" name="documento_experiencia_0"></div>
                         </div>
-                        <div class="text-end">
-                            <button type="button" id="remove-academic" class="btn btn-outline-danger btn-sm me-2">Eliminar último</button>
-                            <button type="button" id="add-academic" class="btn btn-outline-success btn-sm">Agregar otro estudio</button>
-                        </div>
+                    </div>
+                    <h6 class="fw-bold text-muted">EMPLEOS ANTERIORES</h6>
+                    <div id="container-empleos">
+                        {{#if empleosAnteriores.length}}
+                        {{#each empleosAnteriores}}
+                        {{> empleoItem index=(add @index 1) data=this}}
+                        {{/each}}
+                        {{else}}
+                        {{> empleoItem index=1}}
+                        {{/if}}
+                    </div>
+                    <button type="button" class="btn btn-outline-success btn-sm mt-2"
+                        onclick="agregarBloque('container-empleos', 'empleo-item')"><i class="fas fa-plus"></i> Agregar
+                        Empleo</button>
+                </div>
+            </div>
+
+            <div id="sec-tiempo" class="seccion-tab">
+                <div class="form-card">
+                    <h2 class="section-title">4. TIEMPO TOTAL</h2>
+                    <div class="table-responsive">
+                        <table class="table table-bordered bg-white">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>OCUPACIÓN</th>
+                                    <th style="width:100px">AÑOS</th>
+                                    <th style="width:100px">MESES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>SERVIDOR PÚBLICO</td>
+                                    <td><input type="number" class="form-control" name="anios_servidor_publico"
+                                            value="{{tiempo_experiencia.anios_servidor_publico}}"></td>
+                                    <td><input type="number" class="form-control" name="meses_servidor_publico"
+                                            value="{{tiempo_experiencia.meses_servidor_publico}}"></td>
+                                </tr>
+                                <tr>
+                                    <td>SECTOR PRIVADO</td>
+                                    <td><input type="number" class="form-control" name="anios_sector_privado"
+                                            value="{{tiempo_experiencia.anios_sector_privado}}"></td>
+                                    <td><input type="number" class="form-control" name="meses_sector_privado"
+                                            value="{{tiempo_experiencia.meses_sector_privado}}"></td>
+                                </tr>
+                                <tr>
+                                    <td>INDEPENDIENTE</td>
+                                    <td><input type="number" class="form-control" name="anios_trabajador_independiente"
+                                            value="{{tiempo_experiencia.anios_trabajador_independiente}}"></td>
+                                    <td><input type="number" class="form-control" name="meses_trabajador_independiente"
+                                            value="{{tiempo_experiencia.meses_trabajador_independiente}}"></td>
+                                </tr>
+                                <tr class="fw-bold table-secondary">
+                                    <td>TOTAL</td>
+                                    <td><input type="number" class="form-control" name="anios_total_experiencia"
+                                            value="{{tiempo_experiencia.anios_total_experiencia}}" readonly></td>
+                                    <td><input type="number" class="form-control" name="meses_total_experiencia"
+                                            value="{{tiempo_experiencia.meses_total_experiencia}}" readonly></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
+            </div>
 
-                <div class="tab-pane fade" id="v-pills-idiomas" role="tabpanel">
-                    <div class="form-card">
-                        <h2 class="section-title"><i class="fas fa-language"></i> Idiomas</h2>
-                        <div id="languages-container">
-                            {{#if idiomas.length}}
-                                {{#each idiomas}}
-                                <div class="dynamic-block language-block">
-                                    <input type="hidden" name="id_idioma_{{@index}}" value="{{this.id_idioma}}" />
-                                    <div class="nice-form-group">
-                                        <label>Idioma</label>
-                                        <input type="text" name="idioma_{{@index}}" value="{{this.idioma}}" />
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-4"><label>Habla</label><select name="habla_{{@index}}" class="form-control"><option>Bien</option><option>Regular</option></select></div>
-                                        <div class="col-md-4"><label>Lee</label><select name="lee_{{@index}}" class="form-control"><option>Bien</option><option>Regular</option></select></div>
-                                        <div class="col-md-4"><label>Escribe</label><select name="escribe_{{@index}}" class="form-control"><option>Bien</option><option>Regular</option></select></div>
-                                    </div>
-                                </div>
-                                {{/each}}
-                            {{else}}
-                                <div class="dynamic-block language-block">
-                                    <input type="hidden" name="id_idioma_0" value="" />
-                                    <div class="nice-form-group"><label>Idioma</label><input type="text" name="idioma_0" /></div>
-                                    </div>
-                            {{/if}}
-                        </div>
-                        <div class="text-end mt-3">
-                            <button type="button" id="remove-language" class="btn btn-outline-danger btn-sm me-2">Eliminar</button>
-                            <button type="button" id="add-language" class="btn btn-outline-success btn-sm">Agregar Idioma</button>
-                        </div>
+            <div id="sec-documentos" class="seccion-tab">
+                <div class="form-card">
+                    <h2 class="section-title">SOPORTES</h2>
+                    <div class="mb-4">
+                        <label class="form-label">Documento de Identidad (Si falta)</label>
+                        <input type="file" name="documento_id" class="form-control">
                     </div>
+                    <h6 class="fw-bold">Archivos Cargados</h6>
+                    <ul class="list-group mt-2">
+                        {{#if documentos}}
+                        {{#each documentos}}
+                        <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                            <span>{{this.original_name}}</span>
+                            <a href="/hoja/documento/{{this.id_documento}}" target="_blank"
+                                class="btn btn-sm btn-outline-primary"><i class="fas fa-download"></i></a>
+                        </li>
+                        {{/each}}
+                        {{else}}
+                        <li class="list-group-item text-muted">No hay documentos adicionales.</li>
+                        {{/if}}
+                    </ul>
                 </div>
+            </div>
 
-                <div class="tab-pane fade" id="v-pills-experiencia" role="tabpanel">
-                    <div class="form-card">
-                        <h2 class="section-title"><i class="fas fa-briefcase"></i> Experiencia Laboral</h2>
-                        
-                        <div class="dynamic-block border-primary">
-                            <h5 class="text-primary mb-3">Empleo Actual</h5>
-                            <input type="hidden" name="id_experiencia_0" value="{{empleoActual.id_experiencia}}" />
-                            <input type="hidden" name="empleo_actual_0" value="SI" />
-                            <div class="row">
-                                <div class="col-md-6 nice-form-group">
-                                    <label>Empresa</label>
-                                    <input type="text" name="empresa_entidad_0" value="{{empleoActual.empresa_entidad}}" />
-                                </div>
-                                <div class="col-md-6 nice-form-group">
-                                    <label>Cargo</label>
-                                    <input type="text" name="cargo_actual_0" value="{{empleoActual.cargo_actual}}" />
-                                </div>
-                                <div class="col-md-6 nice-form-group">
-                                    <label>Fecha Ingreso</label>
-                                    <input type="date" name="fecha_ingreso_0" value="{{empleoActual.fecha_ingreso}}" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <h5 class="mb-3 mt-4">Empleos Anteriores</h5>
-                        <div id="empleos-container">
-                            {{#if empleosAnteriores.length}}
-                                {{#each empleosAnteriores}}
-                                <div class="dynamic-block empleos-block">
-                                    <input type="hidden" name="empleo_actual_{{add @index 1}}" value="NO" />
-                                    <input type="hidden" name="id_experiencia_{{add @index 1}}" value="{{this.id_experiencia}}" />
-                                    <div class="nice-form-group">
-                                        <label>Empresa Anterior</label>
-                                        <input type="text" name="empresa_entidad_{{add @index 1}}" value="{{this.empresa_entidad}}" />
-                                    </div>
-                                    </div>
-                                {{/each}}
-                            {{else}}
-                                <div class="dynamic-block empleos-block">
-                                    <input type="hidden" name="empleo_actual_1" value="NO" />
-                                    <input type="hidden" name="id_experiencia_1" value="" />
-                                    <div class="nice-form-group">
-                                        <label>Empresa Anterior</label>
-                                        <input type="text" name="empresa_entidad_1" />
-                                    </div>
-                                </div>
-                            {{/if}}
-                        </div>
-                        <div class="text-end mt-3">
-                            <button type="button" id="remove-empleos" class="btn btn-outline-danger btn-sm me-2">Eliminar</button>
-                            <button type="button" id="add-empleos" class="btn btn-outline-success btn-sm">Agregar Empleo</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="v-pills-tiempo" role="tabpanel">
-                    <div class="form-card">
-                        <h2 class="section-title"><i class="fas fa-clock"></i> Tiempo Total Experiencia</h2>
-                        <div class="row">
-                            <div class="col-md-6 nice-form-group">
-                                <label>Años en Sector Público</label>
-                                <input type="number" name="anios_servidor_publico" value="{{tiempo_experiencia.anios_servidor_publico}}" />
-                            </div>
-                            <div class="col-md-6 nice-form-group">
-                                <label>Años en Sector Privado</label>
-                                <input type="number" name="anios_sector_privado" value="{{tiempo_experiencia.anios_sector_privado}}" />
-                            </div>
-                            <div class="col-md-12 nice-form-group">
-                                <label>Total Años Experiencia</label>
-                                <input type="number" name="anios_total_experiencia" value="{{tiempo_experiencia.anios_total_experiencia}}" class="fw-bold" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div> </form>
+            <div class="d-md-none mobile-fab">
+                <button type="button" class="btn btn-success shadow rounded-pill" onclick="enviarFormulario()"><i
+                        class="fas fa-save"></i> Guardar</button>
+                <button type="button" class="btn btn-primary shadow rounded-pill" onclick="descargarPDF()"><i
+                        class="fas fa-file-pdf"></i> PDF</button>
+            </div>
+        </form>
     </div>
 </div>
 
 <script>
-    // Función simple para agregar bloques
-    function setupDynamicBlocks(addBtnId, removeBtnId, containerId, blockClass) {
-        const addBtn = document.getElementById(addBtnId);
-        const removeBtn = document.getElementById(removeBtnId);
+    function mostrarSeccion(id, btn) {
+        document.querySelectorAll('.seccion-tab').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('sec-' + id).classList.add('active');
+        if (btn) btn.classList.add('active');
+        else {
+            const b = document.querySelector(`button[onclick*="'${id}'"]`);
+            if (b) b.classList.add('active');
+        }
+    }
+
+    function togglePais(radio) {
+        const input = document.getElementById('inputPais');
+        if (radio.value.includes('COLOMBIA')) { input.value = 'COLOMBIA'; input.readOnly = true; }
+        else { input.value = ''; input.readOnly = false; }
+    }
+
+    function enviarFormulario() { document.getElementById('hojaForm').submit(); }
+    function descargarPDF() { window.location.href = '/hoja/generar-pdf'; }
+
+    function agregarBloque(containerId, itemClass) {
         const container = document.getElementById(containerId);
+        const items = container.querySelectorAll('.' + itemClass);
 
-        if(addBtn && container) {
-            addBtn.addEventListener('click', () => {
-                const blocks = container.querySelectorAll('.' + blockClass);
-                if(blocks.length >= 5) return alert('Máximo 5 registros permitidos.');
-                
-                const newBlock = blocks[0].cloneNode(true);
-                const newIndex = blocks.length + (blockClass === 'empleos-block' ? 1 : 0); // Ajuste índice empleos empieza en 1
-                
-                // Limpiar valores y actualizar IDs/Names
-                newBlock.querySelectorAll('input, select').forEach(input => {
-                    if(input.name) input.name = input.name.replace(/_\d+$/, `_${newIndex}`);
-                    if(input.id) input.id = input.id.replace(/_\d+$/, `_${newIndex}`);
-                    input.value = ''; 
-                    if(input.type === 'hidden' && input.name.includes('id_')) input.value = '';
-                });
+        if (items.length >= 5) return alert('Máximo 5 registros.');
 
-                container.appendChild(newBlock);
-            });
-        }
+        // Clonar el primer elemento
+        const clone = items[0].cloneNode(true);
 
-        if(removeBtn && container) {
-            removeBtn.addEventListener('click', () => {
-                const blocks = container.querySelectorAll('.' + blockClass);
-                if(blocks.length > 1) {
-                    container.removeChild(blocks[blocks.length - 1]);
-                } else {
-                    // Si es el último, solo limpiar inputs
-                    blocks[0].querySelectorAll('input').forEach(i => i.value = '');
-                }
-            });
-        }
-    }
+        // Calcular nuevo índice
+        let newIndex = items.length;
+        if (containerId === 'container-empleos') newIndex = items.length + 1;
 
-    // Inicializar lógica dinámica
-    setupDynamicBlocks('add-academic', 'remove-academic', 'academic-container', 'academic-block');
-    setupDynamicBlocks('add-language', 'remove-language', 'languages-container', 'language-block');
-    setupDynamicBlocks('add-empleos', 'remove-empleos', 'empleos-container', 'empleos-block');
+        // Limpiar y actualizar IDs y Nombres
+        clone.querySelectorAll('input, select, label').forEach(el => {
+            // Limpiar valor
+            if (el.tagName === 'INPUT' || el.tagName === 'SELECT') {
+                el.value = '';
+                if (el.type === 'radio' || el.type === 'checkbox') el.checked = false;
+            }
 
-    function enviarFormulario() {
-        document.getElementById('datos-form').submit();
-    }
+            // Actualizar NAME (ej: empresa_0 -> empresa_1)
+            if (el.name) el.name = el.name.replace(/_\d+$/, '_' + newIndex);
 
-    function descargarPDF() {
-        // Tu lógica original de fetch
-        window.location.href = '/hoja/generar-pdf'; 
+            // Actualizar ID (ej: tipo_pub_0 -> tipo_pub_1)
+            if (el.id) el.id = el.id.replace(/_\d+$/, '_' + newIndex);
+
+            // Actualizar FOR (para los labels)
+            if (el.getAttribute('for')) {
+                const oldFor = el.getAttribute('for');
+                el.setAttribute('for', oldFor.replace(/_\d+$/, '_' + newIndex));
+            }
+        });
+
+        // Eliminar enlaces/botones basura si se clonaron
+        const links = clone.querySelectorAll('a');
+        links.forEach(l => l.remove());
+
+        container.appendChild(clone);
     }
 </script>
+
+{{#*inline "estudioItem"}}
+<div class="estudio-item dynamic-item">
+    <input type="hidden" name="id_educacion_superior_{{index}}" value="{{data.id_educacion_superior}}">
+    <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">Modalidad</label><select class="form-select"
+                name="modalidad_academica_{{index}}">
+                <option value="">Seleccione...</option>
+                <option value="TC" {{#if (eq data.modalidad_academica "TC" )}}selected{{/if}}>TC</option>
+                <option value="TL" {{#if (eq data.modalidad_academica "TL" )}}selected{{/if}}>TL</option>
+                <option value="UN" {{#if (eq data.modalidad_academica "UN" )}}selected{{/if}}>UN</option>
+                <option value="ES" {{#if (eq data.modalidad_academica "ES" )}}selected{{/if}}>ES</option>
+                <option value="MG" {{#if (eq data.modalidad_academica "MG" )}}selected{{/if}}>MG</option>
+            </select></div>
+        <div class="col-md-6"><label class="form-label">Título</label><input type="text" class="form-control"
+                name="nombre_titulo_{{index}}" value="{{data.nombre_titulo}}"></div>
+        <div class="col-md-3"><label class="form-label">Semestres</label><input type="number" class="form-control"
+                name="semestres_aprobados_{{index}}" value="{{data.semestres_aprobados}}"></div>
+        <div class="col-md-3"><label class="form-label">Graduado</label><select class="form-select"
+                name="graduado_{{index}}">
+                <option value="SI" {{#if (eq data.graduado "SI" )}}selected{{/if}}>SI</option>
+                <option value="NO" {{#if (eq data.graduado "NO" )}}selected{{/if}}>NO</option>
+            </select></div>
+        <div class="col-md-3"><label class="form-label">Terminación</label><input type="month" class="form-control"
+                name="mes_terminacion_{{index}}" value="{{data.mes_terminacion}}"></div>
+        <div class="col-md-3"><label class="form-label">Tarjeta</label><input type="text" class="form-control"
+                name="numero_tarjeta_profesional_{{index}}" value="{{data.numero_tarjeta_profesional}}"></div>
+        <div class="col-12"><label class="form-label">Soporte</label><input type="file" class="form-control"
+                name="documento_educacion_superior_{{index}}"></div>
+    </div>
+</div>
+{{/inline}}
+
+{{#*inline "idiomaItem"}}
+<div class="idioma-item dynamic-item">
+    <input type="hidden" name="id_idioma_{{index}}" value="{{data.id_idioma}}">
+    <div class="row g-3">
+        <div class="col-12"><label class="form-label">Idioma</label><input type="text" class="form-control"
+                name="idioma_{{index}}" value="{{data.idioma}}"></div>
+        <div class="col-4"><label class="form-label">Habla</label><select class="form-select" name="habla_{{index}}">
+                <option>R</option>
+                <option>B</option>
+                <option>MB</option>
+            </select></div>
+        <div class="col-4"><label class="form-label">Lee</label><select class="form-select" name="lee_{{index}}">
+                <option>R</option>
+                <option>B</option>
+                <option>MB</option>
+            </select></div>
+        <div class="col-4"><label class="form-label">Escribe</label><select class="form-select"
+                name="escribe_{{index}}">
+                <option>R</option>
+                <option>B</option>
+                <option>MB</option>
+            </select></div>
+    </div>
+</div>
+{{/inline}}
+
+{{#*inline "empleoItem"}}
+<div class="empleo-item dynamic-item">
+    <input type="hidden" name="empleo_actual_{{index}}" value="NO">
+    <input type="hidden" name="id_experiencia_{{index}}" value="{{data.id_experiencia}}">
+    <div class="row g-3">
+        <div class="col-md-8"><label class="form-label">Empresa</label><input type="text" class="form-control"
+                name="empresa_entidad_{{index}}" value="{{data.empresa_entidad}}"></div>
+        <div class="col-md-4">
+            <label class="form-label">Tipo</label>
+            <div class="d-flex gap-2 mt-1">
+                <input type="radio" class="btn-check" name="tipo_{{index}}" id="tipo_pub_{{index}}" value="PUBLICA"
+                    {{#if (eq data.tipo "PUBLICA" )}}checked{{/if}}>
+                <label class="btn btn-outline-success btn-sm flex-fill" for="tipo_pub_{{index}}">Pública</label>
+
+                <input type="radio" class="btn-check" name="tipo_{{index}}" id="tipo_priv_{{index}}" value="PRIVADA"
+                    {{#if (eq data.tipo "PRIVADA" )}}checked{{/if}}>
+                <label class="btn btn-outline-secondary btn-sm flex-fill" for="tipo_priv_{{index}}">Privada</label>
+            </div>
+        </div>
+        <div class="col-md-4"><label class="form-label">País</label><input type="text" class="form-control"
+                name="pais_{{index}}" value="{{data.pais}}"></div>
+        <div class="col-md-4"><label class="form-label">Depto</label><input type="text" class="form-control"
+                name="departamento_{{index}}" value="{{data.departamento}}"></div>
+        <div class="col-md-4"><label class="form-label">Municipio</label><input type="text" class="form-control"
+                name="municipio_{{index}}" value="{{data.municipio}}"></div>
+        <div class="col-md-6"><label class="form-label">Email</label><input type="email" class="form-control"
+                name="correo_entidad_{{index}}" value="{{data.correo_entidad}}"></div>
+        <div class="col-md-6"><label class="form-label">Teléfono</label><input type="text" class="form-control"
+                name="telefono_entidad_{{index}}" value="{{data.telefono_entidad}}"></div>
+        <div class="col-md-6"><label class="form-label">Ingreso</label><input type="date" class="form-control"
+                name="fecha_ingreso_{{index}}" value="{{data.fecha_ingreso}}"></div>
+        <div class="col-md-6"><label class="form-label">Retiro</label><input type="date" class="form-control"
+                name="fecha_retiro_{{index}}" value="{{data.fecha_retiro}}"></div>
+        <div class="col-md-6"><label class="form-label">Cargo</label><input type="text" class="form-control"
+                name="cargo_actual_{{index}}" value="{{data.cargo_actual}}"></div>
+        <div class="col-md-6"><label class="form-label">Dependencia</label><input type="text" class="form-control"
+                name="dependencia_{{index}}" value="{{data.dependencia}}"></div>
+        <div class="col-12"><label class="form-label">Dirección</label><input type="text" class="form-control"
+                name="direccion_{{index}}" value="{{data.direccion}}"></div>
+        <div class="col-12"><label class="form-label">Soporte</label><input type="file" class="form-control"
+                name="documento_experiencia_{{index}}"></div>
+    </div>
+</div>
+{{/inline}}
