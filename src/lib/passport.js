@@ -11,7 +11,7 @@ passport.use('local.signin', new LocalStrategy({
 }, async (req, numero_documento, password, done) => {
   try {
     // Buscar al usuario en la base de datos
-    const rows = await db.query('SELECT * FROM personas WHERE numero_documento = ?', [numero_documento]);
+    const [rows] = await db.query('SELECT * FROM personas WHERE numero_documento = ?', [numero_documento]);
     if (rows.length > 0) {
       const user = rows[0];
 
@@ -61,7 +61,7 @@ passport.use('local.signup', new LocalStrategy({
     `;
 
 
-    const rows = await db.query(sql, [veredaBusca]);
+    const [rows] = await db.query(sql, [veredaBusca]);
 
 
     if (!Array.isArray(rows) || rows.length === 0) {
@@ -87,7 +87,7 @@ passport.use('local.signup', new LocalStrategy({
 
     // Verificar si el número de documento ya existe
     const checkQuery = 'SELECT id_persona FROM personas WHERE numero_documento = ? LIMIT 1';
-    const existingUser = await db.query(checkQuery, [numero_documento]);
+    const [existingUser] = await db.query(checkQuery, [numero_documento]);
 
     if (existingUser.length > 0) {
       return done(null, false, req.flash('message', 'Ya existe un usuario con ese número de documento.'));
@@ -105,7 +105,7 @@ passport.use('local.signup', new LocalStrategy({
       vereda: veredaBusca,
     };
 
-    const result = await db.query(
+    const [result] = await db.query(
       'INSERT INTO personas SET ?',
       newUser
     );
@@ -129,7 +129,7 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   try {
-    const rows = await db.query('SELECT * FROM personas WHERE id_persona = ?', [id]);
+    const [rows] = await db.query('SELECT * FROM personas WHERE id_persona = ?', [id]);
     if (rows.length > 0) {
       done(null, rows[0]);
     } else {

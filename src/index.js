@@ -136,11 +136,11 @@ app.listen(port, '0.0.0.0', () => {
 });
 
 // Register commonly used helpers
-Handlebars.registerHelper('eq', function(a, b) {
+Handlebars.registerHelper('eq', function (a, b) {
   return a == b;
 });
 
-Handlebars.registerHelper('range', function(start, end) {
+Handlebars.registerHelper('range', function (start, end) {
   let range = [];
   for (let i = start; i < end; i++) {
     range.push(i);
@@ -151,3 +151,36 @@ Handlebars.registerHelper('range', function(start, end) {
 Handlebars.registerHelper('add', function (a, b) {
   return a + b;
 });
+Handlebars.registerHelper('formatDate', function (dateString) {
+  if (!dateString) return '';
+  const parts = dateString.toString().split('-');
+  if (parts.length >= 2) {
+    const year = parts[0];
+    const monthIndex = parseInt(parts[1], 10) - 1;
+    const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    if (months[monthIndex]) {
+      return `${months[monthIndex]} ${year}`;
+    }
+  }
+  return dateString;
+});
+
+Handlebars.registerHelper('formatFullDate', function (dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+
+  // Adjust for timezone offset if necessary, but usually UTC dates from DB might show previous day if not handled.
+  // However, the user complained about "Fri Aug 15 2003...".
+  // Let's use UTC methods to avoid timezone shifts if the date is stored as YYYY-MM-DD 00:00:00 UTC.
+  // But usually simple .getDate() uses local time.
+  // If the server is in a different timezone, it might be an issue.
+  // For now, simple formatting.
+
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year}`;
+});
+

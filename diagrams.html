@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <!DOCTYPE html>
+    <html lang="es">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Diagramas del Proyecto de Grado - Hoja de Vida</title>
+        <script type="module">
+            import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+            mermaid.initialize({ startOnLoad: true, theme: 'default' });
+        </script>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background-color: #f8f9fa;
+                color: #333;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            h1 {
+                text-align: center;
+                color: #0d6efd;
+                margin-bottom: 40px;
+            }
+
+            .diagram-section {
+                background: white;
+                padding: 30px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                margin-bottom: 40px;
+            }
+
+            h2 {
+                border-bottom: 2px solid #dee2e6;
+                padding-bottom: 10px;
+                margin-top: 0;
+                color: #495057;
+            }
+
+            .mermaid {
+                display: flex;
+                justify-content: center;
+                margin-top: 20px;
+                margin-bottom: 30px;
+            }
+
+            .description {
+                margin-bottom: 15px;
+                color: #6c757d;
+                font-style: italic;
+            }
+
+            .detailed-explanation {
+                background-color: #f8f9fa;
+                padding: 20px;
+                border-radius: 6px;
+                border-left: 4px solid #0d6efd;
+                margin-top: 20px;
+            }
+
+            .detailed-explanation h3 {
+                margin-top: 0;
+                color: #0d6efd;
+                font-size: 1.1rem;
+            }
+
+            .detailed-explanation ul {
+                padding-left: 20px;
+            }
+
+            .detailed-explanation li {
+                margin-bottom: 8px;
+            }
+        </style>
+    </head>
+
+<body>
+    <div class="container">
+        <h1>Diagramas de Sustentación - Hoja de Vida</h1>
+
+        <!-- 1. Diagrama de Entidad-Relación (ERD) -->
+        <div class="diagram-section">
+            <h2>1. Diagrama de Entidad-Relación (ERD)</h2>
+            <p class="description">Representa la estructura de la base de datos y las relaciones entre las tablas
+                principales del sistema.</p>
+            <div class="mermaid">
+                erDiagram
+                PERSONAS ||--|| EDUCACION_BASICA_MEDIA : "tiene"
+                PERSONAS ||--o{ EDUCACION_SUPERIOR : "tiene"
+                PERSONAS ||--o{ IDIOMAS : "domina"
+                PERSONAS ||--o{ EXPERIENCIA_LABORAL : "tiene"
+                PERSONAS ||--|| TIEMPO_EXPERIENCIA : "registra"
+                PERSONAS ||--o{ DOCUMENTOS : "sube"
+
+                PERSONAS {
+                int id_persona PK
+                string nombres
+                string primer_apellido
+                string segundo_apellido
+                string tipo_documento
+                string numero_documento
+                string password
+                string vereda
+                string email
+                string telefono
+                char sexo
+                string nacionalidad
+                string pais_nacimiento
+                string direccion_correspondencia
+                string tipo_libreta_militar
+                date fecha_nacimiento
+                enum admin
+                }
+
+                EDUCACION_BASICA_MEDIA {
+                int id PK
+                int id_persona FK
+                string titulo_obtenido
+                string educacion_basica
+                year fecha_grado
+                }
+
+                EDUCACION_SUPERIOR {
+                int id_educacion_superior PK
+                int id_persona FK
+                string modalidad_academica
+                int semestres_aprobados
+                enum graduado
+                string nombre_titulo
+                string mes_terminacion
+                string numero_tarjeta_profesional
+                string documento
+                }
+
+                IDIOMAS {
+                int id_idioma PK
+                int id_persona FK
+                string idioma
+                string lo_habla
+                string lo_lee
+                string lo_escribe
+                string documento
+                }
+
+                EXPERIENCIA_LABORAL {
+                int id_experiencia PK
+                int id_persona FK
+                enum empleo_actual
+                string empresa_entidad
+                string tipo
+                string pais
+                string departamento
+                string municipio
+                string correo_entidad
+                string telefono_entidad
+                date fecha_ingreso
+                date fecha_retiro
+                string cargo_actual
+                string dependencia
+                string direccion
+                string documento
+                }
+
+                TIEMPO_EXPERIENCIA {
+                int id PK
+                int id_persona FK
+                int anios_servidor_publico
+                int meses_servidor_publico
+                int anios_sector_privado
+                int meses_sector_privado
+                int anios_trabajador_independiente
+                int meses_trabajador_independiente
+                int anios_total_experiencia
+                int meses_total_experiencia
+                }
+
+                DOCUMENTOS {
+                int id_documento PK
+                int id_persona FK
+                string original_name
+                string filename
+                string mimetype
+                int size
+                string path
+                timestamp uploaded_at
+                }
+
+                JUNTA_PRESIDENTES {
+                int id PK
+                string vereda
+                string nombre_presidente
+                }
+            </div>
+
+            <div class="detailed-explanation">
+                <h3>Análisis Detallado del Modelo de Datos</h3>
+                <p>Este diagrama sigue un modelo relacional normalizado centrado en la entidad
+                    <strong>PERSONAS</strong>, diseñado para garantizar la integridad y evitar la redundancia de datos:
+                </p>
+                <ul>
+                    <li><strong>Centralidad de PERSONAS:</strong> La tabla <code>PERSONAS</code> actúa como el núcleo
+                        del sistema. Contiene la información inmutable y de identificación del usuario (documento,
+                        nombre, contacto). Todas las demás tablas son satélites que enriquecen este perfil.</li>
+                    <li><strong>Relaciones 1 a 1 (||--||):</strong>
+                        <ul>
+                            <li><code>EDUCACION_BASICA_MEDIA</code>: Se define como 1 a 1 porque, en el contexto de este
+                                sistema, un usuario registra un único bloque de información sobre su bachillerato o
+                                educación media. No se espera un historial múltiple de graduaciones de colegio.</li>
+                            <li><code>TIEMPO_EXPERIENCIA</code>: Es una tabla de resumen agregada. Cada persona tiene un
+                                único registro que totaliza sus años y meses de experiencia en diferentes sectores. Esto
+                                optimiza las consultas al evitar recalcular totales cada vez que se necesita ver el
+                                perfil.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Relaciones 1 a Muchos (||--o{):</strong>
+                        <ul>
+                            <li><code>EDUCACION_SUPERIOR</code>, <code>IDIOMAS</code>, <code>EXPERIENCIA_LABORAL</code>:
+                                Estas entidades permiten múltiples registros por usuario. Una persona puede tener varios
+                                títulos universitarios, hablar varios idiomas o haber trabajado en múltiples empresas.
+                            </li>
+                            <li><code>DOCUMENTOS</code>: Permite asociar múltiples archivos de soporte (PDFs, imágenes)
+                                a una sola persona, manteniendo los metadatos de los archivos (nombre, ruta, tamaño)
+                                separados de la lógica de negocio.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Integridad Referencial:</strong> Todas las tablas satélite tienen una llave foránea (FK)
+                        <code>id_persona</code>, lo que garantiza que no pueda existir información de educación o
+                        experiencia sin un usuario asociado.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 2. Diagrama de Secuencia -->
+        <div class="diagram-section">
+            <h2>2. Diagrama de Secuencia: Actualización de Datos</h2>
+            <p class="description">Detalla el flujo de información cuando un usuario guarda o actualiza su hoja de vida,
+                incluyendo validaciones y carga de archivos.</p>
+            <div class="mermaid">
+                sequenceDiagram
+                autonumber
+                actor User as Usuario
+                participant Browser as Navegador
+                participant Router as Router (/insertar-datos)
+                participant Middleware as Multer & Validator
+                participant Controller as HojaController
+                participant Service as HojaService
+                participant Repo as HojaRepository
+                participant DB as Base de Datos
+
+                User->>Browser: Diligencia formulario y adjunta archivos
+                User->>Browser: Clic en "Guardar"
+                Browser->>Router: POST /insertar-datos (Multipart Form)
+                Router->>Middleware: upload.fields(...)
+                Middleware-->>Router: Archivos procesados
+                Router->>Middleware: insertarDatosValidators
+                Middleware-->>Router: Datos validados
+                Router->>Controller: insertarDatos(req, res)
+                Controller->>Service: updateHojaDeVida(id, datos, files)
+
+                rect rgb(240, 248, 255)
+                note right of Service: Inicio de Transacción
+                Service->>Repo: ensureDocumentosTable()
+
+                par Procesamiento de Archivos
+                Service->>Repo: saveDocumento(foto/soportes)
+                Service->>Repo: updatePersonaArchivo()
+                end
+
+                Service->>Repo: updatePersona(datosPersonales)
+                Service->>Repo: saveEducacionBasica(datos)
+
+                loop Por cada estudio superior
+                Service->>Repo: saveEducacionSuperior(record)
+                end
+
+                loop Por cada idioma
+                Service->>Repo: saveIdioma(record)
+                end
+
+                loop Por cada experiencia
+                Service->>Repo: saveExperienciaLaboral(record)
+                end
+
+                Service->>Repo: saveTiempoExperiencia(datos)
+                Service->>DB: COMMIT Transacción
+                end
+
+                Service-->>Controller: Retorna éxito
+                Controller-->>Browser: Redirecciona a /view/:id
+                Browser-->>User: Muestra Hoja de Vida actualizada
+            </div>
+
+            <div class="detailed-explanation">
+                <h3>Explicación del Flujo de Procesamiento</h3>
+                <p>Este diagrama ilustra cómo el sistema maneja la complejidad de recibir datos de texto y archivos
+                    binarios simultáneamente, garantizando la consistencia de los datos:</p>
+                <ul>
+                    <li><strong>Manejo de Multipart/Form-Data:</strong> El navegador envía los datos en un formato
+                        multipart. El componente <strong>Middleware (Multer)</strong> es el primero en intervenir,
+                        interceptando la solicitud para procesar y guardar los archivos físicos en el servidor antes de
+                        que la lógica de negocio se ejecute. Esto separa la responsabilidad de I/O (entrada/salida) de
+                        la lógica de aplicación.</li>
+                    <li><strong>Validación Previa:</strong> Antes de tocar la base de datos,
+                        <code>express-validator</code> asegura que los campos obligatorios (como documento o nombres)
+                        estén presentes y tengan el formato correcto. Esto protege al sistema de datos corruptos o
+                        incompletos.</li>
+                    <li><strong>Transaccionalidad (ACID):</strong> El bloque azul <code>rect</code> representa una
+                        <strong>Transacción de Base de Datos</strong>.
+                        <ul>
+                            <li>La operación de guardar una hoja de vida implica insertar datos en 5 o 6 tablas
+                                diferentes.</li>
+                            <li>Si falla la inserción de la experiencia laboral (por ejemplo, por un error de sintaxis),
+                                la transacción hace <strong>ROLLBACK</strong>. Esto significa que se deshacen los
+                                cambios en <code>PERSONAS</code> y <code>EDUCACION</code>, evitando que quede un usuario
+                                "a medias" en el sistema. Todo se guarda o nada se guarda.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Orquestación en Capas:</strong>
+                        <ul>
+                            <li>El <strong>Controller</strong> solo coordina: recibe la petición y decide qué servicio
+                                llamar.</li>
+                            <li>El <strong>Service</strong> contiene la lógica "dura": sabe en qué orden guardar los
+                                datos y maneja la transacción.</li>
+                            <li>El <strong>Repository</strong> ejecuta el SQL puro, manteniendo el código SQL aislado de
+                                la lógica de negocio.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 3. Diagrama de Arquitectura -->
+        <div class="diagram-section">
+            <h2>3. Diagrama de Arquitectura (MVC)</h2>
+            <p class="description">Ilustra la arquitectura en capas del proyecto siguiendo el patrón
+                Modelo-Vista-Controlador.</p>
+            <div class="mermaid">
+                graph TD
+                subgraph Client [Cliente]
+                Browser[Navegador Web]
+                end
+
+                subgraph Server [Servidor Node.js]
+                subgraph Presentation [Capa de Presentación]
+                Views["Vistas (Handlebars .hbs)"]
+                Public["Archivos Estáticos (CSS/JS/Img)"]
+                end
+
+                subgraph Control [Capa de Control]
+                Routes[Rutas Express]
+                Middlewares["Middleware (Multer, Validator, Auth)"]
+                Controllers[Controladores]
+                end
+
+                subgraph Business [Capa de Negocio]
+                Services["Servicios (HojaService)"]
+                PDFGen["Generador PDF (PDFMake)"]
+                end
+
+                subgraph Data [Capa de Datos]
+                Repositories["Repositorios (HojaRepository)"]
+                DBConfig[Configuración DB]
+                end
+                end
+
+                subgraph Database [Persistencia]
+                MySQL[(MySQL Database)]
+                end
+
+                Browser <-->|HTTP Requests| Routes
+                    Routes --> Middlewares
+                    Middlewares --> Controllers
+                    Controllers -->|Render| Views
+                    Controllers -->|Call| Services
+                    Services -->|Logic| Repositories
+                    Repositories -->|Query| DBConfig
+                    DBConfig <-->|Connection| MySQL
+
+                        style Client fill:#e9ecef,stroke:#333,stroke-width:2px
+                        style Server fill:#e7f5ff,stroke:#0d6efd,stroke-width:2px
+                        style Database fill:#fff3cd,stroke:#ffc107,stroke-width:2px
+            </div>
+
+            <div class="detailed-explanation">
+                <h3>Arquitectura de Software (MVC + Capas)</h3>
+                <p>El sistema implementa una arquitectura modular basada en el patrón Modelo-Vista-Controlador (MVC)
+                    extendido con capas de servicio y repositorio para mayor mantenibilidad:</p>
+                <ul>
+                    <li><strong>Capa de Presentación (Vista):</strong> Utiliza <strong>Handlebars (.hbs)</strong> para
+                        renderizar HTML dinámico en el servidor. Esto permite mostrar datos personalizados al usuario de
+                        manera eficiente. Los archivos estáticos (CSS, JS) se sirven directamente para la interactividad
+                        del cliente.</li>
+                    <li><strong>Capa de Control (Controlador):</strong> Es el punto de entrada.
+                        <ul>
+                            <li><strong>Rutas:</strong> Definen los endpoints (URLs) disponibles.</li>
+                            <li><strong>Middleware:</strong> Maneja aspectos transversales como la autenticación
+                                (Passport.js), la subida de archivos (Multer) y la seguridad, asegurando que solo
+                                peticiones válidas lleguen a los controladores.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Capa de Negocio (Servicio):</strong> Aquí reside la inteligencia del sistema.
+                        <code>HojaService</code> no sabe de HTTP (req/res) ni de SQL. Solo sabe de reglas de negocio:
+                        "Para actualizar una hoja de vida, primero debo validar los archivos, luego iniciar una
+                        transacción, etc.". También integra librerías externas como <code>PDFMake</code> para generar
+                        documentos.</li>
+                    <li><strong>Capa de Datos (Modelo/Repositorio):</strong> Abstrae el acceso a la base de datos.
+                        <code>HojaRepository</code> contiene todas las consultas SQL. Si mañana cambiamos de MySQL a
+                        PostgreSQL, idealmente solo tendríamos que modificar esta capa, sin tocar los controladores ni
+                        las vistas.</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+</html>
