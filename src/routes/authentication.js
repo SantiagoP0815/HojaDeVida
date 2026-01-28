@@ -53,12 +53,22 @@ router.post('/signin', [
   })(req, res, next);
 });
 
-router.get('/logout', (req, res, next) => {
-  // Compatibilidad con versiones nuevas de passport: usar callback
-  req.logOut(function(err) {
-    if (err) { return next(err); }
-    res.redirect('/');
-  });
+router.get('/logout', isLoggedIn, (req, res) => {
+    // 1. Ejecutar logout de passport (sin callback para evitar bloqueos en versiones antiguas)
+    req.logout();
+
+    // 2. Forzar la destrucción de la sesión de express
+    if (req.session) {
+        req.session.destroy((err) => {
+            if (err) {
+                console.log('Error al destruir la sesión:', err);
+            }
+            // 3. Redirigir SIEMPRE, pase lo que pase
+            res.redirect('/signin');
+        });
+    } else {
+        res.redirect('/signin');
+    }
 });
 
 router.get('/profile', isLoggedIn, (req, res) => {

@@ -1,6 +1,7 @@
 const multer = require('multer');
 const path = require('path'); // Para manejar las extensiones de los archivos
 const fs = require('fs');
+const CONSTANTS = require('../config/constants');
 
 const docsDir = path.join(__dirname, '..', 'docs');
 
@@ -30,7 +31,7 @@ const storage = multer.diskStorage({
         const segundoApellidoLimpio = sanitize(segundoApellido);
 
         // Generar nombre del archivo
-        const extension = path.extname(file.originalname); // Extensión del archivo
+        const extension = path.extname(file.originalname).toLowerCase(); // Extensión del archivo
         const timestamp = Date.now();
         const nombreArchivo = `${numero_documentoLimpio}_${primerApellidoLimpio}_${segundoApellidoLimpio}_${nombresLimpios}_${tipoDocumento}_${timestamp}${extension}`;
 
@@ -38,18 +39,34 @@ const storage = multer.diskStorage({
     }
 });
 
-// File filter and limits
-const allowedMimes = ['application/pdf', 'image/jpeg', 'image/png'];
-const limits = { fileSize: 5 * 1024 * 1024 }; // 5MB
-
+/**
+ * Filtro de archivos permitidos
+ * Valida tanto MIME type como extensión para mayor seguridad
+ */
 const fileFilter = (req, file, cb) => {
-    if (allowedMimes.includes(file.mimetype)) {
+    // Validar MIME type
+    const mimeValid = CONSTANTS.ALLOWED_MIME_TYPES.includes(file.mimetype);
+
+    // Validar extensión
+    const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
+    const extValid = CONSTANTS.ALLOWED_FILE_TYPES.includes(ext);
+
+    if (mimeValid && extValid) {
         cb(null, true);
     } else {
-        cb(new Error('Tipo de archivo no permitido. Solo PDF, JPG y PNG son aceptados.'));
+        const allowedTypes = CONSTANTS.ALLOWED_FILE_TYPES.map(t => t.toUpperCase()).join(', ');
+        cb(new Error(`Tipo de archivo no permitido. Solo se aceptan: ${allowedTypes} (máximo ${CONSTANTS.MAX_FILE_SIZE / (1024 * 1024)}MB)`));
     }
 };
 
-const upload = multer({ storage: storage, limits, fileFilter });
+// Configuración de multer con límites y filtros
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: CONSTANTS.MAX_FILE_SIZE,
+        files: 20 // Máximo de archivos en una sola petición
+    },
+    fileFilter: fileFilter
+});
 
 module.exports = upload;  // Exportamos el middleware para usarlo en otros archivos
