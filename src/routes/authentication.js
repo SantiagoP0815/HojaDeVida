@@ -16,7 +16,7 @@ router.post('/signup', [
   body('nombres').trim().notEmpty().withMessage('Nombres son requeridos'),
   body('tipo_documento').isIn(['C.C', 'C.E', 'PAS']).withMessage('Tipo de documento inválido'),
   body('numero_documento').trim().notEmpty().withMessage('Número de documento es requerido'),
-  body('password').isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres'),
+  body('password').isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres'),
   body('vereda').trim().notEmpty().withMessage('La vereda es requerida'),
   body('respuesta_junta').trim().notEmpty().withMessage('La respuesta a la pregunta es requerida')
 ], (req, res, next) => {
