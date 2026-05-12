@@ -110,8 +110,6 @@ class HojaService {
 
     async updateHojaDeVida(idPersona, datos, files) {
         return db.withTransaction(async (conn) => {
-            await hojaRepository.ensureDocumentosTable(conn);
-
             // 1. Handle Main Document Upload
             if (files && files['documento_id']) {
                 const file = files['documento_id'][0];
@@ -142,10 +140,15 @@ class HojaService {
 
             // 4. Update Educacion Superior
             const undefinedToNull = (value) => value === "" || value === "0" || value === undefined ? null : value;
-            const records = [];
+
+            const existingRecords = await hojaRepository.getEducacionSuperior(idPersona);
+            const existingIds = new Set((Array.isArray(existingRecords) ? existingRecords : []).map(r => Number(r.id_educacion_superior)));
+            const sentIds = new Set();
+            const educacionIndexToId = new Map();
+
             for (let i = 0; i <= 5; i++) {
                 if ((datos[`id_educacion_superior_${i}`] || datos[`modalidad_academica_${i}`] || datos[`semestres_aprobados_${i}`])) {
-                    records.push({
+                    const record = {
                         id_educacion_superior: undefinedToNull(datos[`id_educacion_superior_${i}`]),
                         modalidad_academica: undefinedToNull(datos[`modalidad_academica_${i}`]),
                         semestres_aprobados: undefinedToNull(datos[`semestres_aprobados_${i}`]),
@@ -153,62 +156,50 @@ class HojaService {
                         nombre_titulo: undefinedToNull(datos[`nombre_titulo_${i}`]),
                         mes_terminacion: undefinedToNull(datos[`mes_terminacion_${i}`]),
                         numero_tarjeta_profesional: undefinedToNull(datos[`numero_tarjeta_profesional_${i}`]),
-                    });
+                    };
+                    const id = await hojaRepository.saveEducacionSuperior(conn, idPersona, record);
+                    sentIds.add(Number(id));
+                    educacionIndexToId.set(i, Number(id));
                 }
             }
 
-            const existingRecords = await hojaRepository.getEducacionSuperior(idPersona);
-            const existingIds = new Set((Array.isArray(existingRecords) ? existingRecords : []).map(r => Number(r.id_educacion_superior)));
-            const sentIds = new Set();
-
-            for (const record of records) {
-                const id = await hojaRepository.saveEducacionSuperior(conn, idPersona, record);
-                sentIds.add(Number(id));
-            }
-
-            // Files for Educacion Superior
             for (let i = 0; i <= 5; i++) {
                 if (files && files[`documento_educacion_superior_${i}`]) {
                     const file = files[`documento_educacion_superior_${i}`][0];
-                    const nombreTitulo = datos[`nombre_titulo_${i}`];
-                    if (nombreTitulo) {
-                        await hojaRepository.updateEducacionSuperiorDocumento(conn, idPersona, nombreTitulo, file.filename);
-                    }
+                    const id = educacionIndexToId.get(i);
+                    if (id) await hojaRepository.updateEducacionSuperiorDocumentoById(conn, id, file.filename);
                 }
             }
 
             const idsToDelete = Array.from(existingIds).filter(id => !sentIds.has(id));
             await hojaRepository.deleteEducacionSuperior(conn, idPersona, idsToDelete);
 
-
             // 5. Update Idiomas
-            const recordsIdiomas = [];
+            const existingRecIdsIdiomas = await hojaRepository.getIdiomas(idPersona);
+            const existingIdsIdiomas = new Set((Array.isArray(existingRecIdsIdiomas) ? existingRecIdsIdiomas : []).map(r => Number(r.id_idioma)));
+            const sentIdsIdiomas = new Set();
+            const idiomaIndexToId = new Map();
+
             for (let i = 0; i <= 5; i++) {
                 if ((datos[`id_idioma_${i}`] || datos[`idioma_${i}`])) {
-                    recordsIdiomas.push({
+                    const rec = {
                         id_idioma: undefinedToNull(datos[`id_idioma_${i}`]),
                         idioma: undefinedToNull(datos[`idioma_${i}`]),
                         habla: undefinedToNull(datos[`habla_${i}`]),
                         lee: undefinedToNull(datos[`lee_${i}`]),
                         escribe: undefinedToNull(datos[`escribe_${i}`])
-                    });
+                    };
+                    const id = await hojaRepository.saveIdioma(conn, idPersona, rec);
+                    sentIdsIdiomas.add(Number(id));
+                    idiomaIndexToId.set(i, Number(id));
                 }
             }
-            const existingRecIdsIdiomas = await hojaRepository.getIdiomas(idPersona);
-            const existingIdsIdiomas = new Set((Array.isArray(existingRecIdsIdiomas) ? existingRecIdsIdiomas : []).map(r => Number(r.id_idioma)));
-            const sentIdsIdiomas = new Set();
 
-            for (const rec of recordsIdiomas) {
-                const id = await hojaRepository.saveIdioma(conn, idPersona, rec);
-                sentIdsIdiomas.add(Number(id));
-            }
-
-            // Files for Idiomas
             for (let i = 0; i <= 5; i++) {
                 if (files && files[`documento_idioma_${i}`]) {
                     const file = files[`documento_idioma_${i}`][0];
-                    const idiomaNombre = datos[`idioma_${i}`];
-                    if (idiomaNombre) await hojaRepository.updateIdiomaDocumento(conn, idPersona, idiomaNombre, file.filename);
+                    const id = idiomaIndexToId.get(i);
+                    if (id) await hojaRepository.updateIdiomaDocumentoById(conn, id, file.filename);
                 }
             }
 
@@ -216,10 +207,14 @@ class HojaService {
             await hojaRepository.deleteIdiomas(conn, idPersona, idsDelIdiomas);
 
             // 6. Update Experiencia Laboral
-            const recordsExp = [];
+            const existingRecExp = await hojaRepository.getExperienciaLaboral(idPersona);
+            const existingIdsExp = new Set((Array.isArray(existingRecExp) ? existingRecExp : []).map(r => Number(r.id_experiencia)));
+            const sentIdsExp = new Set();
+            const expIndexToId = new Map();
+
             for (let i = 0; i <= 5; i++) {
                 if ((datos[`id_experiencia_${i}`] || datos[`empresa_entidad_${i}`] || datos[`cargo_actual_${i}`])) {
-                    recordsExp.push({
+                    const rec = {
                         id_experiencia: undefinedToNull(datos[`id_experiencia_${i}`]),
                         empleo_actual: undefinedToNull(datos[`empleo_actual_${i}`]),
                         empresa_entidad: undefinedToNull(datos[`empresa_entidad_${i}`]),
@@ -234,25 +229,18 @@ class HojaService {
                         cargo_actual: undefinedToNull(datos[`cargo_actual_${i}`]),
                         dependencia: undefinedToNull(datos[`dependencia_${i}`]),
                         direccion: undefinedToNull(datos[`direccion_${i}`]),
-                    });
+                    };
+                    const id = await hojaRepository.saveExperienciaLaboral(conn, idPersona, rec);
+                    sentIdsExp.add(Number(id));
+                    expIndexToId.set(i, Number(id));
                 }
             }
 
-            const existingRecExp = await hojaRepository.getExperienciaLaboral(idPersona);
-            const existingIdsExp = new Set((Array.isArray(existingRecExp) ? existingRecExp : []).map(r => Number(r.id_experiencia)));
-            const sentIdsExp = new Set();
-
-            for (const rec of recordsExp) {
-                const id = await hojaRepository.saveExperienciaLaboral(conn, idPersona, rec);
-                sentIdsExp.add(Number(id));
-            }
-
-            // Files for Experiencia
             for (let i = 0; i <= 5; i++) {
                 if (files && files[`documento_experiencia_${i}`]) {
                     const file = files[`documento_experiencia_${i}`][0];
-                    const empresa = datos[`empresa_entidad_${i}`];
-                    if (empresa) await hojaRepository.updateExperienciaLaboralDocumento(conn, idPersona, empresa, file.filename);
+                    const id = expIndexToId.get(i);
+                    if (id) await hojaRepository.updateExperienciaLaboralDocumentoById(conn, id, file.filename);
                 }
             }
 

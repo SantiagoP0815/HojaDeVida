@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS `personas` (
   `dm_libreta_militar` VARCHAR(100) DEFAULT NULL,
   `fecha_nacimiento` DATE DEFAULT NULL,
   `nombre_original_archivo` VARCHAR(255) DEFAULT NULL,
+  `foto_perfil` VARCHAR(255) DEFAULT NULL,
   `admin` ENUM('SI','NO') NOT NULL DEFAULT 'NO',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -139,3 +140,6 @@ INSERT IGNORE INTO junta_presidentes (vereda, nombre_presidente) VALUES
 ('Vereda2', 'María García');
 
 -- Nota: Si usas express-mysql-session, la tabla de sesiones se crea automáticamente por la librería.
+
+-- Migración para instancias existentes: agrega foto_perfil si no existe
+ALTER TABLE `personas` ADD COLUMN IF NOT EXISTS `foto_perfil` VARCHAR(255) DEFAULT NULL;

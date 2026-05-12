@@ -8,6 +8,8 @@ const session = require('express-session');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
+const xss = require('xss-clean');
+const mongoSanitize = require('express-mongo-sanitize');
 const csurf = require('csurf');
 const passport = require('passport');
 const flash = require('connect-flash');
@@ -42,8 +44,7 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-      scriptSrcAttr: ["'unsafe-inline'"], // Esto permite los onclick="..."
+      scriptSrc: ["'self'", "https://cdn.jsdelivr.net"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://use.fontawesome.com"],
       fontSrc: ["'self'", "https://use.fontawesome.com", "https://cdn.jsdelivr.net"],
       imgSrc: ["'self'", "data:", "https:"],
@@ -53,8 +54,8 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false, // Necesario para evitar bloqueos de recursos cruzados
 }));
 
-app.use(cors());
-app.use(cors());
+app.use(cors({ origin: false }));
+app.use(morgan('dev'));
 
 // Rate limiter
 const limiter = rateLimit({
@@ -66,6 +67,10 @@ app.use(limiter);
 // Body parsers
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+
+// Data sanitization
+app.use(xss());
+app.use(mongoSanitize());
 
 // View engine setup
 app.set('port', process.env.PORT || 4000);

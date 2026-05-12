@@ -98,16 +98,18 @@ class HojaRepository {
     async updatePersona(conn, idPersona, datos) {
         return conn.query(
             `UPDATE personas SET nombres = ?, primer_apellido = ?, segundo_apellido = ?, tipo_documento = ?, numero_documento = ?, sexo = ?, nacionalidad = ?, pais = ?, tipo_libreta_militar = ?, numero_libreta_militar = ?, dm_libreta_militar = ?, fecha_nacimiento = ?, pais_nacimiento = ?, departamento_nacimiento = ?, municipio_nacimiento = ?, direccion_correspondencia = ?, pais_correspondencia = ?, departamento_correspondencia = ?, municipio_correspondencia = ?, telefono = ?, email = ? WHERE id_persona = ?`,
-            [datos.nombres, datos.primer_apellido, datos.segundo_apellido, datos.tipo_documento, datos.numero_documento, datos.sexo, datos.nacionalidad, datos.pais, datos.tipo_libreta_militar, datos.numero_libreta_militar, datos.dm_libreta_militar, datos.fecha_nacimiento, datos.pais_nacimiento, datos.departamento_nacimiento, datos.municipio_nacimiento, datos.direccion_correspondencia, datos.pais_correspondencia, datos.departamento_correspondencia, datos.municipio_correspondencia, datos.telefono, datos.email, idPersona]
+            [datos.nombres, datos.primer_apellido, datos.segundo_apellido, datos.tipo_documento, datos.numero_documento, datos.sexo || null, datos.nacionalidad || null, datos.pais || null, datos.tipo_libreta_militar || null, datos.numero_libreta_militar || null, datos.dm_libreta_militar || null, datos.fecha_nacimiento || null, datos.pais_nacimiento || null, datos.departamento_nacimiento || null, datos.municipio_nacimiento || null, datos.direccion_correspondencia || null, datos.pais_correspondencia || null, datos.departamento_correspondencia || null, datos.municipio_correspondencia || null, datos.telefono || null, datos.email || null, idPersona]
         );
     }
 
     async saveEducacionBasica(conn, idPersona, datos) {
+        const fechaGrado = datos.fecha_grado ? (parseInt(datos.fecha_grado, 10) || null) : null;
+        const educacionBasica = datos.educacion_basica || null;
         const [rowsBasica] = await conn.query(`SELECT 1 FROM educacion_basica_media WHERE id_persona = ? LIMIT 1`, [idPersona]);
         if (!rowsBasica || rowsBasica.length === 0) {
-            return conn.query(`INSERT INTO educacion_basica_media (id_persona, titulo_obtenido, educacion_basica, fecha_grado) VALUES (?, ?, ?, ?)`, [idPersona, datos.titulo_obtenido, datos.educacion_basica, datos.fecha_grado]);
+            return conn.query(`INSERT INTO educacion_basica_media (id_persona, titulo_obtenido, educacion_basica, fecha_grado) VALUES (?, ?, ?, ?)`, [idPersona, datos.titulo_obtenido || null, educacionBasica, fechaGrado]);
         } else {
-            return conn.query(`UPDATE educacion_basica_media SET titulo_obtenido = ?, educacion_basica = ?, fecha_grado = ? WHERE id_persona = ?`, [datos.titulo_obtenido, datos.educacion_basica, datos.fecha_grado, idPersona]);
+            return conn.query(`UPDATE educacion_basica_media SET titulo_obtenido = ?, educacion_basica = ?, fecha_grado = ? WHERE id_persona = ?`, [datos.titulo_obtenido || null, educacionBasica, fechaGrado, idPersona]);
         }
     }
 
@@ -131,6 +133,10 @@ class HojaRepository {
         return conn.query(`UPDATE educacion_superior SET documento = ? WHERE id_persona = ? AND nombre_titulo = ?`, [filename, idPersona, nombreTitulo]);
     }
 
+    async updateEducacionSuperiorDocumentoById(conn, id, filename) {
+        return conn.query(`UPDATE educacion_superior SET documento = ? WHERE id_educacion_superior = ?`, [filename, id]);
+    }
+
     async deleteEducacionSuperior(conn, idPersona, idsToDelete) {
         if (idsToDelete.length > 0) {
             return conn.query(`DELETE FROM educacion_superior WHERE id_educacion_superior IN (?) AND id_persona = ?`, [idsToDelete, idPersona]);
@@ -151,6 +157,10 @@ class HojaRepository {
         return conn.query(`UPDATE idiomas SET documento = ? WHERE id_persona = ? AND idioma = ?`, [filename, idPersona, idiomaNombre]);
     }
 
+    async updateIdiomaDocumentoById(conn, id, filename) {
+        return conn.query(`UPDATE idiomas SET documento = ? WHERE id_idioma = ?`, [filename, id]);
+    }
+
     async deleteIdiomas(conn, idPersona, idsToDelete) {
         if (idsToDelete.length > 0) {
             return conn.query(`DELETE FROM idiomas WHERE id_idioma IN (?) AND id_persona = ?`, [idsToDelete, idPersona]);
@@ -160,17 +170,21 @@ class HojaRepository {
     async saveExperienciaLaboral(conn, idPersona, rec) {
         if (rec.id_experiencia) {
             await conn.query(`UPDATE experiencia_laboral SET empleo_actual=?, empresa_entidad=?, tipo=?, pais=?, departamento=?, municipio=?, correo_entidad=?, telefono_entidad=?, fecha_ingreso=?, fecha_retiro=?, cargo_actual=?, dependencia=?, direccion=? WHERE id_experiencia=?`,
-                [rec.empleo_actual, rec.empresa_entidad, rec.tipo, rec.pais, rec.departamento, rec.municipio, rec.correo_entidad, rec.telefono_entidad, rec.fecha_ingreso, rec.fecha_retiro, rec.cargo_actual, rec.dependencia, rec.direccion, rec.id_experiencia]);
+                [rec.empleo_actual, rec.empresa_entidad, rec.tipo, rec.pais, rec.departamento, rec.municipio, rec.correo_entidad, rec.telefono_entidad, rec.fecha_ingreso || null, rec.fecha_retiro || null, rec.cargo_actual, rec.dependencia, rec.direccion, rec.id_experiencia]);
             return rec.id_experiencia;
         } else {
             const [resIns] = await conn.query(`INSERT INTO experiencia_laboral (id_persona, empleo_actual, empresa_entidad, tipo, pais, departamento, municipio, correo_entidad, telefono_entidad, fecha_ingreso, fecha_retiro, cargo_actual, dependencia, direccion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [idPersona, rec.empleo_actual, rec.empresa_entidad, rec.tipo, rec.pais, rec.departamento, rec.municipio, rec.correo_entidad, rec.telefono_entidad, rec.fecha_ingreso, rec.fecha_retiro, rec.cargo_actual, rec.dependencia, rec.direccion]);
+                [idPersona, rec.empleo_actual, rec.empresa_entidad, rec.tipo, rec.pais, rec.departamento, rec.municipio, rec.correo_entidad, rec.telefono_entidad, rec.fecha_ingreso || null, rec.fecha_retiro || null, rec.cargo_actual, rec.dependencia, rec.direccion]);
             return resIns.insertId;
         }
     }
 
     async updateExperienciaLaboralDocumento(conn, idPersona, empresa, filename) {
         return conn.query(`UPDATE experiencia_laboral SET documento = ? WHERE id_persona = ? AND empresa_entidad = ?`, [filename, idPersona, empresa]);
+    }
+
+    async updateExperienciaLaboralDocumentoById(conn, id, filename) {
+        return conn.query(`UPDATE experiencia_laboral SET documento = ? WHERE id_experiencia = ?`, [filename, id]);
     }
 
     async deleteExperienciaLaboral(conn, idPersona, idsToDelete) {
@@ -180,13 +194,24 @@ class HojaRepository {
     }
 
     async saveTiempoExperiencia(conn, idPersona, datos) {
+        const toInt = (v) => parseInt(v, 10) || 0;
+        const vals = [
+            toInt(datos.anios_servidor_publico),
+            toInt(datos.meses_servidor_publico),
+            toInt(datos.anios_sector_privado),
+            toInt(datos.meses_sector_privado),
+            toInt(datos.anios_trabajador_independiente),
+            toInt(datos.meses_trabajador_independiente),
+            toInt(datos.anios_total_experiencia),
+            toInt(datos.meses_total_experiencia),
+        ];
         const [rowsTiempo] = await conn.query(`SELECT 1 FROM tiempo_experiencia WHERE id_persona = ? LIMIT 1`, [idPersona]);
         if (!rowsTiempo || rowsTiempo.length === 0) {
             return conn.query(`INSERT INTO tiempo_experiencia (id_persona, anios_servidor_publico, meses_servidor_publico, anios_sector_privado, meses_sector_privado, anios_trabajador_independiente, meses_trabajador_independiente, anios_total_experiencia, meses_total_experiencia) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [idPersona, datos.anios_servidor_publico, datos.meses_servidor_publico, datos.anios_sector_privado, datos.meses_sector_privado, datos.anios_trabajador_independiente, datos.meses_trabajador_independiente, datos.anios_total_experiencia, datos.meses_total_experiencia]);
+                [idPersona, ...vals]);
         } else {
             return conn.query(`UPDATE tiempo_experiencia SET anios_servidor_publico=?, meses_servidor_publico=?, anios_sector_privado=?, meses_sector_privado=?, anios_trabajador_independiente=?, meses_trabajador_independiente=?, anios_total_experiencia=?, meses_total_experiencia=? WHERE id_persona=?`,
-                [datos.anios_servidor_publico, datos.meses_servidor_publico, datos.anios_sector_privado, datos.meses_sector_privado, datos.anios_trabajador_independiente, datos.meses_trabajador_independiente, datos.anios_total_experiencia, datos.meses_total_experiencia, idPersona]);
+                [...vals, idPersona]);
         }
     }
 

@@ -79,11 +79,10 @@ passport.use('local.signup', new LocalStrategy({
     // 3) Sanitizar también el nombre de presidente y la respuesta
     const oficial = oficialRaw.trim().toLowerCase();
     const respuestaLt = respuesta_junta.trim().toLowerCase();
-    /*
-        if (oficial !== respuestaLt) {
-          return done(null, false, req.flash('message', 'La respuesta es incorrecta.'));
-        }
-    */
+
+    if (oficial !== respuestaLt) {
+      return done(null, false, req.flash('message', 'La respuesta es incorrecta.'));
+    }
 
     // Verificar si el número de documento ya existe
     const checkQuery = 'SELECT id_persona FROM personas WHERE numero_documento = ? LIMIT 1';

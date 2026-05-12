@@ -7,7 +7,7 @@ const { insertarDatosValidators } = require('../validators/hojaValidator');
 
 // Render Forms
 router.get('/add', isLoggedIn, hojaController.renderAdd);
-router.get('/view/:unique_identifier', hojaController.renderView);
+router.get('/view/:unique_identifier', isLoggedIn, hojaController.renderView);
 
 // Insert/Update Data
 router.post('/insertar-datos',
@@ -40,7 +40,7 @@ router.post('/insertar-datos',
 
 // PDF Generation
 router.get('/generar-pdf', isLoggedIn, hojaController.generarPdf);
-router.get('/generar-pdf/:unique_identifier', hojaController.generarPdfById);
+router.get('/generar-pdf/:unique_identifier', isLoggedIn, hojaController.generarPdfById);
 
 // Document Management
 router.get('/documento/:id/preview', isLoggedIn, hojaController.previewDocument);
