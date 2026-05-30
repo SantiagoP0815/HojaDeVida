@@ -37,7 +37,7 @@ Aplicación web para gestión y generación de hojas de vida. Permite a usuarios
 ## Instalación
 
 ```bash
-git clone <repo>
+git clone https://github.com/SantiagoP0815/HojaDeVida
 cd HojaDeVida
 npm install
 ```

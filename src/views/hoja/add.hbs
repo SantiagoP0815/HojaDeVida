@@ -228,6 +228,23 @@
                         <div class="col-md-6"><label class="form-label">Email</label><input type="email"
                                 class="form-control" name="email" value="{{user.email}}"></div>
                     </div>
+                    <hr class="my-4">
+                    <h6 class="fw-bold text-muted mb-3">PERFIL PROFESIONAL</h6>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Resumen / Perfil</label>
+                            <textarea class="form-control" name="perfil_profesional" rows="4"
+                                placeholder="Describe brevemente tu perfil profesional, objetivos y fortalezas...">{{user.perfil_profesional}}</textarea>
+                            <div class="form-text">Máximo 3-4 oraciones. Es lo primero que ve un reclutador.</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Habilidades</label>
+                            <input type="text" class="form-control" name="habilidades"
+                                value="{{user.habilidades}}"
+                                placeholder="Ej: Node.js, SQL, Trabajo en equipo, Liderazgo">
+                            <div class="form-text">Separa cada habilidad con coma.</div>
+                        </div>
+                    </div>
                     <div class="d-flex justify-content-end mt-3">
                         <button type="button" class="btn btn-primary shadow-sm px-4" data-seccion="formacion">
                             Siguiente <i class="fas fa-arrow-right ms-2"></i>

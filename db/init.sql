@@ -134,12 +134,26 @@ CREATE TABLE IF NOT EXISTS `junta_presidentes` (
 CREATE INDEX IF NOT EXISTS idx_personas_numdoc ON personas (numero_documento(50));
 CREATE INDEX IF NOT EXISTS idx_documentos_persona ON documentos (id_persona);
 
--- Datos de ejemplo (opcional)
+-- Presidentes de junta de acción comunal
 INSERT IGNORE INTO junta_presidentes (vereda, nombre_presidente) VALUES
-('Vereda1', 'Juan Perez'),
-('Vereda2', 'María García');
+('Pedregal Alto',  'Carlos Gómez'),
+('Pedregal Bajo',  'Luis Martínez'),
+('La Lajita',      'Ana Rodríguez'),
+('El Bosque',      'Pedro Sánchez'),
+('El Moral',       'Rosa Pérez'),
+('El Palmar',      'Jorge Torres'),
+('Palmarito',      'María López'),
+('Juan Curí',      'Héctor Vargas'),
+('La Laguna',      'Gloria Mora'),
+('Santa Rita',     'Andrés Ruiz'),
+('Caguanoque',     'Luz Herrera'),
+('Centro',         'Fernando Castro');
 
 -- Nota: Si usas express-mysql-session, la tabla de sesiones se crea automáticamente por la librería.
 
 -- Migración para instancias existentes: agrega foto_perfil si no existe
 ALTER TABLE `personas` ADD COLUMN IF NOT EXISTS `foto_perfil` VARCHAR(255) DEFAULT NULL;
+
+-- Migración: perfil profesional y habilidades
+ALTER TABLE `personas` ADD COLUMN IF NOT EXISTS `perfil_profesional` TEXT DEFAULT NULL;
+ALTER TABLE `personas` ADD COLUMN IF NOT EXISTS `habilidades` TEXT DEFAULT NULL;

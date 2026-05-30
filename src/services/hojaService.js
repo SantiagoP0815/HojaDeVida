@@ -39,7 +39,6 @@ class HojaService {
 
         const data = await this.getHojaDeVidaData(idPersona);
 
-        // Helper to format date as YYYY-MM-DD
         const formatDate = (date) => {
             if (!date) return '';
             const d = new Date(date);
@@ -47,7 +46,6 @@ class HojaService {
             return d.toISOString().split('T')[0];
         };
 
-        // Helper to format date as YYYY-MM
         const formatMonth = (date) => {
             if (!date) return '';
             const d = new Date(date);
@@ -55,22 +53,18 @@ class HojaService {
             return d.toISOString().slice(0, 7);
         };
 
-        // Format Persona dates
         if (persona.fecha_nacimiento) persona.fecha_nacimiento = formatDate(persona.fecha_nacimiento);
 
-        // Format Educacion Basica dates
         if (data.educacion_basica_media && data.educacion_basica_media.fecha_grado) {
             data.educacion_basica_media.fecha_grado = formatMonth(data.educacion_basica_media.fecha_grado);
         }
 
-        // Format Educacion Superior dates
         if (data.educacion_superior) {
             data.educacion_superior.forEach(estudio => {
                 if (estudio.mes_terminacion) estudio.mes_terminacion = formatMonth(estudio.mes_terminacion);
             });
         }
 
-        // Format Experience dates
         if (data.empleoActual) {
             if (data.empleoActual.fecha_ingreso) data.empleoActual.fecha_ingreso = formatDate(data.empleoActual.fecha_ingreso);
             if (data.empleoActual.fecha_retiro) data.empleoActual.fecha_retiro = formatDate(data.empleoActual.fecha_retiro);
@@ -110,7 +104,6 @@ class HojaService {
 
     async updateHojaDeVida(idPersona, datos, files) {
         return db.withTransaction(async (conn) => {
-            // 1. Handle Main Document Upload
             if (files && files['documento_id']) {
                 const file = files['documento_id'][0];
                 const relativePath = path.join('src', 'docs', file.filename);
@@ -125,20 +118,14 @@ class HojaService {
                 await hojaRepository.updatePersonaArchivo(conn, idPersona, file.filename);
             }
 
-            // 1.1 Handle Profile Photo Upload
             if (files && files['foto_perfil']) {
                 const file = files['foto_perfil'][0];
-                // Save photo info to persona table (assuming column exists)
                 await hojaRepository.updatePersonaFoto(conn, idPersona, file.filename);
             }
 
-            // 2. Update Persona
             await hojaRepository.updatePersona(conn, idPersona, datos);
-
-            // 3. Update Educacion Basica
             await hojaRepository.saveEducacionBasica(conn, idPersona, datos);
 
-            // 4. Update Educacion Superior
             const undefinedToNull = (value) => value === "" || value === "0" || value === undefined ? null : value;
 
             const existingRecords = await hojaRepository.getEducacionSuperior(idPersona);
@@ -174,7 +161,6 @@ class HojaService {
             const idsToDelete = Array.from(existingIds).filter(id => !sentIds.has(id));
             await hojaRepository.deleteEducacionSuperior(conn, idPersona, idsToDelete);
 
-            // 5. Update Idiomas
             const existingRecIdsIdiomas = await hojaRepository.getIdiomas(idPersona);
             const existingIdsIdiomas = new Set((Array.isArray(existingRecIdsIdiomas) ? existingRecIdsIdiomas : []).map(r => Number(r.id_idioma)));
             const sentIdsIdiomas = new Set();
@@ -206,7 +192,6 @@ class HojaService {
             const idsDelIdiomas = Array.from(existingIdsIdiomas).filter(id => !sentIdsIdiomas.has(id));
             await hojaRepository.deleteIdiomas(conn, idPersona, idsDelIdiomas);
 
-            // 6. Update Experiencia Laboral
             const existingRecExp = await hojaRepository.getExperienciaLaboral(idPersona);
             const existingIdsExp = new Set((Array.isArray(existingRecExp) ? existingRecExp : []).map(r => Number(r.id_experiencia)));
             const sentIdsExp = new Set();
@@ -247,7 +232,6 @@ class HojaService {
             const idsDelExp = Array.from(existingIdsExp).filter(id => !sentIdsExp.has(id));
             await hojaRepository.deleteExperienciaLaboral(conn, idPersona, idsDelExp);
 
-            // 7. Update Tiempo Experiencia
             await hojaRepository.saveTiempoExperiencia(conn, idPersona, datos);
         });
     }
@@ -262,9 +246,6 @@ class HojaService {
             try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); } catch (e) { }
 
             await hojaRepository.deleteDocumento(conn, idDocumento);
-            await hojaRepository.updatePersonaArchivo(conn, doc.id_persona, null); // Only if it matches? Logic in original was specific.
-            // Original logic: UPDATE personas SET nombre_original_archivo = NULL WHERE id_persona = ? AND nombre_original_archivo = ?
-            // Let's replicate that safely.
             await conn.query('UPDATE personas SET nombre_original_archivo = NULL WHERE id_persona = ? AND nombre_original_archivo = ?', [doc.id_persona, doc.filename]);
         });
     }
@@ -272,361 +253,334 @@ class HojaService {
     generatePdfDocDefinition(data) {
         const { persona, idiomas, educacion_basica_media, educacion_superior, tiempo_experiencia, empleoActual, empleosAnteriores } = data;
         const docsDir = path.join(__dirname, '..', 'docs');
-        const imgDir = path.join(__dirname, '..', 'public', 'img');
 
-        // Helper to get image as base64
+        const PRIMARY      = '#2563eb';
+        const PRIMARY_DARK = '#1d4ed8';
+        const PRIMARY_LIGHT= '#eff6ff';
+        const TEXT_MAIN    = '#1e293b';
+        const TEXT_MUTED   = '#64748b';
+        const BORDER       = '#e2e8f0';
+
         const getImageBase64 = (filePath) => {
             try {
                 if (fs.existsSync(filePath)) {
-                    return 'data:image/jpeg;base64,' + fs.readFileSync(filePath).toString('base64');
+                    const ext = path.extname(filePath).toLowerCase();
+                    const mime = ext === '.png' ? 'image/png' : 'image/jpeg';
+                    return `data:${mime};base64,` + fs.readFileSync(filePath).toString('base64');
                 }
-            } catch (e) {
-                console.error('Error reading image for PDF:', e);
-            }
+            } catch (e) { }
             return null;
         };
 
-        // Helper to format date
-        const formatDate = (dateVal) => {
-            if (!dateVal) return 'N/A';
-            const date = new Date(dateVal);
-            if (isNaN(date.getTime())) return dateVal;
-            const day = String(date.getUTCDate()).padStart(2, '0');
-            const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-            const year = date.getUTCFullYear();
-            return `${day}/${month}/${year}`;
+        const fmtDate = (dateVal) => {
+            if (!dateVal) return '';
+            const d = new Date(dateVal);
+            if (isNaN(d.getTime())) return String(dateVal);
+            return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
         };
 
-        const bgImage = getImageBase64(path.join(imgDir, 'IGLESIA.jpg'));
-        const profilePhoto = data.persona.foto_perfil ? getImageBase64(path.join(docsDir, data.persona.foto_perfil)) : null;
+        const profilePhoto = persona.foto_perfil ? getImageBase64(path.join(docsDir, persona.foto_perfil)) : null;
 
-        // Helper for Sections (Cleaner, no box)
-        const createSection = (title, content) => {
+        // ── SECTION TITLE ────────────────────────────────────────────
+        const sectionTitle = (title) => ({
+            stack: [
+                { text: title.toUpperCase(), fontSize: 9.5, bold: true, color: PRIMARY, margin: [0, 0, 0, 3] },
+                { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1.5, lineColor: PRIMARY }] }
+            ],
+            margin: [0, 18, 0, 10]
+        });
+
+        const subLabel = (text) => ({
+            text: text.toUpperCase(),
+            fontSize: 7.5, bold: true, color: TEXT_MUTED,
+            margin: [0, 6, 0, 6]
+        });
+
+        const field = (label, value) => {
+            if (!value) return { text: '' };
             return {
                 stack: [
-                    { text: title.toUpperCase(), style: 'sectionTitle' },
-                    { canvas: [{ type: 'line', x1: 0, y1: 2, x2: 515, y2: 2, lineWidth: 1, lineColor: '#dee2e6' }] },
-                    { text: ' ', fontSize: 8 }, // Spacing after line
-                    content
+                    { text: label.toUpperCase(), fontSize: 7, bold: true, color: TEXT_MUTED, margin: [0, 0, 0, 1] },
+                    { text: String(value), fontSize: 9.5, color: TEXT_MAIN }
                 ],
-                margin: [0, 0, 0, 20]
+                margin: [0, 0, 0, 7]
             };
         };
 
-        // Helper for Key-Value pairs (Cleaner)
-        const createField = (label, value) => {
+        // ── HEADER ───────────────────────────────────────────────────
+        const cargoLine = (empleoActual && empleoActual.cargo_actual)
+            ? `${empleoActual.cargo_actual}  ·  ${empleoActual.empresa_entidad || ''}`
+            : '';
+
+        const contactParts = [
+            persona.email,
+            persona.telefono,
+            persona.municipio_correspondencia ? `${persona.municipio_correspondencia}, ${persona.departamento_correspondencia || ''}` : null
+        ].filter(Boolean);
+
+        const headerInfoStack = {
+            width: '*',
+            margin: profilePhoto ? [16, 6, 0, 6] : [0, 6, 0, 6],
+            stack: [
+                { text: `${persona.nombres || ''} ${persona.primer_apellido || ''} ${persona.segundo_apellido || ''}`.trim(), fontSize: 20, bold: true, color: '#ffffff' },
+                cargoLine ? { text: cargoLine, fontSize: 9.5, color: 'rgba(255,255,255,0.82)', margin: [0, 3, 0, 0] } : { text: '' },
+                contactParts.length ? { text: contactParts.join('   ·   '), fontSize: 8.5, color: 'rgba(255,255,255,0.75)', margin: [0, 7, 0, 0] } : { text: '' },
+                { text: `${persona.tipo_documento || ''} ${persona.numero_documento || ''}`, fontSize: 7.5, color: 'rgba(255,255,255,0.45)', margin: [0, 5, 0, 0] }
+            ]
+        };
+
+        const headerCols = profilePhoto
+            ? [{ width: 88, stack: [{ image: profilePhoto, width: 78, height: 78, margin: [0, 8, 0, 8] }] }, headerInfoStack]
+            : [headerInfoStack];
+
+        const headerBlock = {
+            table: {
+                widths: ['100%'],
+                body: [[{
+                    fillColor: PRIMARY,
+                    border: [false, false, false, false],
+                    stack: [{ columns: headerCols }],
+                    margin: [20, 14, 20, 14]
+                }]]
+            },
+            layout: 'noBorders'
+        };
+
+        // ── PERFIL PROFESIONAL ────────────────────────────────────────
+        const perfilBlock = persona.perfil_profesional ? {
+            table: {
+                widths: ['100%'],
+                body: [[{
+                    fillColor: PRIMARY_LIGHT,
+                    border: [false, false, false, false],
+                    stack: [
+                        { text: 'PERFIL PROFESIONAL', fontSize: 7, bold: true, color: PRIMARY, margin: [0, 0, 0, 4] },
+                        { text: persona.perfil_profesional, fontSize: 9.5, color: TEXT_MAIN, lineHeight: 1.5 }
+                    ],
+                    margin: [12, 10, 12, 10]
+                }]]
+            },
+            layout: {
+                hLineWidth: () => 0,
+                vLineWidth: (i) => i === 0 ? 3 : 0,
+                vLineColor: () => PRIMARY
+            },
+            margin: [0, 10, 0, 0]
+        } : { text: '' };
+
+        // ── HABILIDADES ───────────────────────────────────────────────
+        const habilidadesBlock = persona.habilidades ? (() => {
+            const skills = persona.habilidades.split(',').map(s => s.trim()).filter(Boolean);
             return {
                 stack: [
-                    { text: label.toUpperCase(), style: 'label' },
-                    { text: value || 'N/A', style: 'value' }
+                    sectionTitle('Habilidades'),
+                    {
+                        columns: skills.map(skill => ({
+                            width: 'auto',
+                            table: {
+                                body: [[{
+                                    text: skill, fontSize: 8, bold: true, color: PRIMARY,
+                                    fillColor: PRIMARY_LIGHT,
+                                    border: [false, false, false, false],
+                                    margin: [7, 3, 7, 3]
+                                }]]
+                            },
+                            layout: 'noBorders',
+                            margin: [0, 0, 6, 0]
+                        })),
+                        columnGap: 0
+                    }
+                ]
+            };
+        })() : { text: '' };
+
+        // ── DATOS PERSONALES ──────────────────────────────────────────
+        const dpFields = [];
+        if (persona.nacionalidad) dpFields.push(field('Nacionalidad', persona.nacionalidad === 'COLOMBIANO' ? 'Colombiano' : `Extranjero${persona.pais ? ` (${persona.pais})` : ''}`));
+        if (persona.sexo)         dpFields.push(field('Sexo', persona.sexo === 'M' ? 'Masculino' : 'Femenino'));
+        if (persona.fecha_nacimiento) dpFields.push(field('Fecha de Nacimiento', fmtDate(persona.fecha_nacimiento)));
+        if (persona.municipio_nacimiento) dpFields.push(field('Lugar de Nacimiento', `${persona.municipio_nacimiento}, ${persona.departamento_nacimiento || ''}`));
+        if (persona.tipo_libreta_militar) dpFields.push(field('Libreta Militar', `${persona.tipo_libreta_militar} — Nro. ${persona.numero_libreta_militar || ''} — D.M. ${persona.dm_libreta_militar || ''}`));
+        if (persona.direccion_correspondencia) dpFields.push(field('Dirección', `${persona.direccion_correspondencia}, ${persona.municipio_correspondencia || ''}`));
+
+        const half = Math.ceil(dpFields.length / 2);
+        const datosPersonalesBlock = dpFields.length ? {
+            stack: [
+                sectionTitle('Datos Personales'),
+                { columns: [{ width: '50%', stack: dpFields.slice(0, half) }, { width: '50%', stack: dpFields.slice(half) }] }
+            ]
+        } : { text: '' };
+
+        // ── FORMACIÓN ACADÉMICA ───────────────────────────────────────
+        const educacionStack = [sectionTitle('Formación Académica')];
+
+        if (educacion_basica_media && educacion_basica_media.titulo_obtenido) {
+            educacionStack.push(subLabel('Educación Básica y Media'));
+            educacionStack.push({
+                columns: [
+                    { width: '*', text: educacion_basica_media.titulo_obtenido, bold: true, fontSize: 9.5, color: TEXT_MAIN },
+                    educacion_basica_media.educacion_basica ? { width: 'auto', text: `Grado ${educacion_basica_media.educacion_basica}°`, fontSize: 8.5, color: TEXT_MUTED } : { text: '' }
                 ],
                 margin: [0, 0, 0, 8]
-            };
-        };
+            });
+        }
 
-        return {
-            background: bgImage ? function (currentPage, pageSize) {
-                return {
-                    image: bgImage,
-                    width: pageSize.width,
-                    height: pageSize.height,
-                    opacity: 0.05 // Very subtle
-                };
-            } : null,
-            content: [
-                // Header (Clean Layout)
-                {
-                    columns: [
+        if (educacion_superior && educacion_superior.length > 0) {
+            educacionStack.push(subLabel('Educación Superior'));
+            educacion_superior.forEach(est => {
+                educacionStack.push({
+                    stack: [
                         {
-                            width: 110,
-                            stack: [
-                                profilePhoto ? {
-                                    image: profilePhoto,
-                                    width: 100,
-                                    height: 100,
-                                    alignment: 'center',
-                                    style: 'profilePhoto'
-                                } : {
-                                    text: 'Sin Foto',
-                                    alignment: 'center',
-                                    margin: [0, 35, 0, 0],
-                                    color: '#adb5bd',
-                                    fontSize: 9
-                                }
+                            columns: [
+                                { width: '*', text: est.nombre_titulo || '', bold: true, fontSize: 10, color: TEXT_MAIN },
+                                { width: 'auto', text: est.mes_terminacion || '', fontSize: 8, color: TEXT_MUTED }
                             ]
                         },
+                        { text: est.modalidad_academica || '', fontSize: 9, color: PRIMARY, margin: [0, 1, 0, 0] },
                         {
-                            width: '*',
-                            margin: [20, 5, 0, 0],
-                            stack: [
-                                { text: `${persona.nombres} ${persona.primer_apellido} ${persona.segundo_apellido || ''}`, style: 'headerName' },
-                                { text: `${persona.tipo_documento} ${persona.numero_documento}`, style: 'headerId' },
-                                { text: ' ', fontSize: 5 },
-                                {
-                                    columns: [
-                                        {
-                                            width: 'auto',
-                                            text: [
-                                                { text: 'Email: ', style: 'headerLabel' },
-                                                { text: persona.email, style: 'headerValue' }
-                                            ],
-                                            margin: [0, 0, 20, 0]
-                                        },
-                                        {
-                                            width: 'auto',
-                                            text: [
-                                                { text: 'Tel: ', style: 'headerLabel' },
-                                                { text: persona.telefono, style: 'headerValue' }
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    columns: [
-                                        {
-                                            width: 'auto',
-                                            text: [
-                                                { text: 'Dirección: ', style: 'headerLabel' },
-                                                { text: `${persona.direccion_correspondencia}, ${persona.municipio_correspondencia}`, style: 'headerValue' }
-                                            ]
-                                        }
-                                    ],
-                                    margin: [0, 2, 0, 0]
-                                }
-                            ]
+                            text: [
+                                est.graduado === 'SI' ? 'Graduado' : 'En Curso',
+                                est.semestres_aprobados ? `  ·  ${est.semestres_aprobados} semestres` : '',
+                                est.numero_tarjeta_profesional ? `  ·  T.P: ${est.numero_tarjeta_profesional}` : ''
+                            ].join(''),
+                            fontSize: 8, color: TEXT_MUTED, margin: [0, 1, 0, 0]
                         }
                     ],
-                    margin: [0, 0, 0, 25]
-                },
+                    margin: [0, 0, 0, 8]
+                });
+            });
+        }
 
-                // 1. Datos Personales
-                createSection('1. Datos Personales', {
-                    columns: [
-                        {
-                            width: '33%',
-                            stack: [
-                                createField('Nacionalidad', persona.nacionalidad),
-                                createField('Lugar Nacimiento', `${persona.municipio_nacimiento}, ${persona.departamento_nacimiento}`)
-                            ]
-                        },
-                        {
-                            width: '33%',
-                            stack: [
-                                createField('Sexo', persona.sexo === 'M' ? 'Masculino' : 'Femenino'),
-                                createField('Fecha Nacimiento', formatDate(persona.fecha_nacimiento))
-                            ]
-                        },
-                        {
-                            width: '33%',
-                            stack: [
-                                createField('Libreta Militar', `${persona.tipo_libreta_militar} - ${persona.numero_libreta_militar || 'N/A'}`),
-                                createField('País', persona.pais_correspondencia)
-                            ]
-                        }
-                    ]
-                }),
-
-                // 2. Formación Académica
-                createSection('2. Formación Académica', {
+        if (idiomas && idiomas.length > 0) {
+            educacionStack.push(subLabel('Idiomas'));
+            educacionStack.push({
+                columns: idiomas.map(idioma => ({
+                    width: '*',
                     stack: [
-                        { text: 'Educación Básica y Media', style: 'subSectionTitle' },
-                        {
-                            ul: [
-                                {
-                                    text: [
-                                        { text: educacion_basica_media.titulo_obtenido || 'Bachiller', style: 'itemTitle' },
-                                        { text: `\nGrado ${educacion_basica_media.educacion_basica}° - ${formatDate(educacion_basica_media.fecha_grado) || ''}`, style: 'itemSubtitle' }
-                                    ],
-                                    margin: [0, 0, 0, 10]
-                                }
-                            ],
-                            margin: [0, 0, 0, 15]
-                        },
-                        { text: 'Educación Superior', style: 'subSectionTitle' },
-                        educacion_superior.length > 0 ? {
-                            ul: educacion_superior.map(est => ({
-                                text: [
-                                    { text: est.nombre_titulo, style: 'itemTitle' },
-                                    { text: `\n${est.modalidad_academica} - ${est.semestres_aprobados} Semestres`, style: 'itemSubtitle' },
-                                    est.graduado === 'SI' ? { text: '\nGRADUADO', style: 'badgeSuccess' } : { text: '\nEN CURSO', style: 'badge' }
-                                ],
-                                margin: [0, 0, 0, 10]
-                            }))
-                        } : { text: 'No registrada', style: 'itemSubtitle', margin: [0, 0, 0, 10] },
-                        { text: 'Idiomas', style: 'subSectionTitle', margin: [0, 10, 0, 5] },
-                        idiomas.length > 0 ? {
-                            ul: idiomas.map(idioma => ({
-                                text: [
-                                    { text: idioma.idioma, style: 'itemTitle' },
-                                    { text: `\nHabla: ${idioma.lo_habla} | Lee: ${idioma.lo_lee} | Escribe: ${idioma.lo_escribe}`, style: 'itemSubtitle' }
-                                ],
-                                margin: [0, 0, 0, 5]
-                            }))
-                        } : { text: 'No registrados', style: 'itemSubtitle' }
-                    ]
-                }),
+                        { text: idioma.idioma, bold: true, fontSize: 9.5, color: TEXT_MAIN },
+                        { text: `Habla: ${idioma.lo_habla || '—'}`, fontSize: 8, color: TEXT_MUTED },
+                        { text: `Lee: ${idioma.lo_lee || '—'}`, fontSize: 8, color: TEXT_MUTED },
+                        { text: `Escribe: ${idioma.lo_escribe || '—'}`, fontSize: 8, color: TEXT_MUTED }
+                    ],
+                    margin: [0, 0, 10, 0]
+                }))
+            });
+        }
 
-                // 3. Experiencia Laboral
-                createSection('3. Experiencia Laboral', {
-                    stack: [
-                        empleoActual && empleoActual.empresa_entidad ? {
-                            stack: [
-                                { text: 'EMPLEO ACTUAL', style: 'badgeSuccess', alignment: 'left', margin: [0, 0, 0, 5] },
-                                {
-                                    columns: [
-                                        { width: '*', text: empleoActual.cargo_actual, style: 'jobTitle' },
-                                        { width: 'auto', text: 'Presente', style: 'jobDate', alignment: 'right' }
-                                    ]
-                                },
-                                { text: empleoActual.empresa_entidad, style: 'jobCompany' },
-                                { text: `${empleoActual.municipio}, ${empleoActual.departamento}`, style: 'jobLocation' },
-                                { text: `Dependencia: ${empleoActual.dependencia || 'N/A'}`, style: 'jobMeta', margin: [0, 2, 0, 15] }
-                            ]
-                        } : null,
-                        empleosAnteriores.length > 0 ? {
-                            stack: empleosAnteriores.map(emp => ({
-                                stack: [
-                                    {
-                                        columns: [
-                                            { width: '*', text: emp.cargo_actual, style: 'jobTitle' },
-                                            { width: 'auto', text: `${formatDate(emp.fecha_ingreso)} - ${formatDate(emp.fecha_retiro)}`, style: 'jobDate', alignment: 'right' }
-                                        ]
-                                    },
-                                    { text: emp.empresa_entidad, style: 'jobCompany' },
-                                    { text: `${emp.municipio}, ${emp.departamento}`, style: 'jobLocation' },
-                                    { text: `Dependencia: ${emp.dependencia || 'N/A'}`, style: 'jobMeta', margin: [0, 2, 0, 15] }
+        // ── EXPERIENCIA LABORAL ───────────────────────────────────────
+        const expStack = [sectionTitle('Experiencia Laboral')];
+
+        if (empleoActual && empleoActual.empresa_entidad) {
+            expStack.push({
+                table: {
+                    widths: ['100%'],
+                    body: [[{
+                        fillColor: PRIMARY_LIGHT,
+                        border: [false, false, false, false],
+                        stack: [
+                            { text: 'EMPLEO ACTUAL', fontSize: 7, bold: true, color: '#16a34a', margin: [0, 0, 0, 4] },
+                            {
+                                columns: [
+                                    { width: '*', text: empleoActual.cargo_actual || '', bold: true, fontSize: 11, color: TEXT_MAIN },
+                                    { width: 'auto', text: `Desde ${fmtDate(empleoActual.fecha_ingreso)}`, fontSize: 8, color: TEXT_MUTED, alignment: 'right' }
                                 ]
-                            }))
-                        } : { text: 'No hay empleos anteriores registrados.', style: 'itemSubtitle' }
-                    ]
-                }),
+                            },
+                            { text: empleoActual.empresa_entidad, fontSize: 10, color: PRIMARY, bold: true, margin: [0, 2, 0, 0] },
+                            empleoActual.municipio ? { text: `${empleoActual.municipio}, ${empleoActual.departamento || ''}`, fontSize: 8, color: TEXT_MUTED, italics: true, margin: [0, 2, 0, 0] } : { text: '' },
+                            empleoActual.dependencia ? { text: `Dependencia: ${empleoActual.dependencia}`, fontSize: 8, color: TEXT_MUTED, margin: [0, 2, 0, 0] } : { text: '' }
+                        ],
+                        margin: [12, 10, 12, 10]
+                    }]]
+                },
+                layout: 'noBorders',
+                margin: [0, 0, 0, 10]
+            });
+        }
 
-                // 4. Tiempo Total
-                createSection('4. Tiempo Total de Experiencia', {
+        if (empleosAnteriores && empleosAnteriores.length > 0) {
+            expStack.push(subLabel('Historial Laboral'));
+            empleosAnteriores.forEach(emp => {
+                expStack.push({
+                    stack: [
+                        {
+                            columns: [
+                                { width: '*', text: emp.cargo_actual || '', bold: true, fontSize: 10, color: TEXT_MAIN },
+                                { width: 'auto', text: `${fmtDate(emp.fecha_ingreso)} — ${emp.fecha_retiro ? fmtDate(emp.fecha_retiro) : 'Presente'}`, fontSize: 8, color: TEXT_MUTED, alignment: 'right' }
+                            ]
+                        },
+                        { text: emp.empresa_entidad || '', fontSize: 9.5, color: PRIMARY, bold: true, margin: [0, 1, 0, 0] },
+                        emp.municipio ? { text: `${emp.municipio}, ${emp.departamento || ''}`, fontSize: 8, color: TEXT_MUTED, italics: true, margin: [0, 1, 0, 0] } : { text: '' },
+                        emp.dependencia ? { text: `Dependencia: ${emp.dependencia}`, fontSize: 8, color: TEXT_MUTED, margin: [0, 1, 0, 0] } : { text: '' }
+                    ],
+                    margin: [0, 0, 0, 8]
+                });
+            });
+        }
+
+        // ── TIEMPO TOTAL ──────────────────────────────────────────────
+        const te = tiempo_experiencia || {};
+        const tiempoBlock = {
+            stack: [
+                sectionTitle('Tiempo Total de Experiencia'),
+                {
                     table: {
-                        headerRows: 1,
-                        widths: ['*', 'auto', 'auto'],
+                        widths: ['*', 60, 60],
                         body: [
                             [
-                                { text: 'TIPO DE EXPERIENCIA', style: 'tableHeader' },
-                                { text: 'AÑOS', style: 'tableHeader', alignment: 'center' },
-                                { text: 'MESES', style: 'tableHeader', alignment: 'center' }
+                                { text: 'TIPO DE EXPERIENCIA', fontSize: 7.5, bold: true, color: TEXT_MUTED, border: [false, false, false, true], borderColor: [null, null, null, BORDER] },
+                                { text: 'AÑOS', fontSize: 7.5, bold: true, color: TEXT_MUTED, alignment: 'center', border: [false, false, false, true], borderColor: [null, null, null, BORDER] },
+                                { text: 'MESES', fontSize: 7.5, bold: true, color: TEXT_MUTED, alignment: 'center', border: [false, false, false, true], borderColor: [null, null, null, BORDER] }
                             ],
-                            ['Servidor Público', { text: tiempo_experiencia.anios_servidor_publico || 0, alignment: 'center', style: 'value' }, { text: tiempo_experiencia.meses_servidor_publico || 0, alignment: 'center', style: 'value' }],
-                            ['Sector Privado', { text: tiempo_experiencia.anios_sector_privado || 0, alignment: 'center', style: 'value' }, { text: tiempo_experiencia.meses_sector_privado || 0, alignment: 'center', style: 'value' }],
-                            ['Trabajador Independiente', { text: tiempo_experiencia.anios_trabajador_independiente || 0, alignment: 'center', style: 'value' }, { text: tiempo_experiencia.meses_trabajador_independiente || 0, alignment: 'center', style: 'value' }],
                             [
-                                { text: 'TOTAL', bold: true, color: '#0d6efd' },
-                                { text: tiempo_experiencia.anios_total_experiencia || 0, bold: true, alignment: 'center', color: '#0d6efd' },
-                                { text: tiempo_experiencia.meses_total_experiencia || 0, bold: true, alignment: 'center', color: '#0d6efd' }
+                                { text: 'Servidor Público', fontSize: 9, color: TEXT_MAIN, border: [false, false, false, true], borderColor: [null, null, null, BORDER] },
+                                { text: String(te.anios_servidor_publico || 0), fontSize: 9, alignment: 'center', border: [false, false, false, true], borderColor: [null, null, null, BORDER] },
+                                { text: String(te.meses_servidor_publico || 0), fontSize: 9, alignment: 'center', border: [false, false, false, true], borderColor: [null, null, null, BORDER] }
+                            ],
+                            [
+                                { text: 'Sector Privado', fontSize: 9, color: TEXT_MAIN, border: [false, false, false, true], borderColor: [null, null, null, BORDER] },
+                                { text: String(te.anios_sector_privado || 0), fontSize: 9, alignment: 'center', border: [false, false, false, true], borderColor: [null, null, null, BORDER] },
+                                { text: String(te.meses_sector_privado || 0), fontSize: 9, alignment: 'center', border: [false, false, false, true], borderColor: [null, null, null, BORDER] }
+                            ],
+                            [
+                                { text: 'Trabajador Independiente', fontSize: 9, color: TEXT_MAIN, border: [false, false, false, true], borderColor: [null, null, null, BORDER] },
+                                { text: String(te.anios_trabajador_independiente || 0), fontSize: 9, alignment: 'center', border: [false, false, false, true], borderColor: [null, null, null, BORDER] },
+                                { text: String(te.meses_trabajador_independiente || 0), fontSize: 9, alignment: 'center', border: [false, false, false, true], borderColor: [null, null, null, BORDER] }
+                            ],
+                            [
+                                { text: 'TOTAL', fontSize: 9, bold: true, color: PRIMARY, border: [false, false, false, false] },
+                                { text: String(te.anios_total_experiencia || 0), fontSize: 10, bold: true, color: PRIMARY, alignment: 'center', border: [false, false, false, false] },
+                                { text: String(te.meses_total_experiencia || 0), fontSize: 10, bold: true, color: PRIMARY, alignment: 'center', border: [false, false, false, false] }
                             ]
                         ]
                     },
-                    layout: 'lightHorizontalLines'
-                })
+                    layout: {
+                        hLineWidth: () => 0,
+                        vLineWidth: () => 0,
+                        paddingTop: () => 5,
+                        paddingBottom: () => 5
+                    }
+                }
+            ]
+        };
+
+        return {
+            content: [
+                headerBlock,
+                perfilBlock,
+                habilidadesBlock,
+                datosPersonalesBlock,
+                { stack: educacionStack },
+                { stack: expStack },
+                tiempoBlock
             ],
             styles: {
-                headerName: {
-                    fontSize: 22,
-                    bold: true,
-                    color: '#212529'
-                },
-                headerId: {
-                    fontSize: 11,
-                    color: '#6c757d',
-                    margin: [0, 0, 0, 5]
-                },
-                headerLabel: {
-                    fontSize: 9,
-                    bold: true,
-                    color: '#495057'
-                },
-                headerValue: {
-                    fontSize: 9,
-                    color: '#212529'
-                },
-                sectionTitle: {
-                    fontSize: 14,
-                    bold: true,
-                    color: '#0d6efd',
-                    margin: [0, 0, 0, 2]
-                },
-                subSectionTitle: {
-                    fontSize: 10,
-                    bold: true,
-                    color: '#6c757d',
-                    margin: [0, 0, 0, 5]
-                },
-                label: {
-                    fontSize: 8,
-                    bold: true,
-                    color: '#868e96',
-                    margin: [0, 0, 0, 1]
-                },
-                value: {
-                    fontSize: 10,
-                    color: '#212529'
-                },
-                itemTitle: {
-                    fontSize: 11,
-                    bold: true,
-                    color: '#212529'
-                },
-                itemSubtitle: {
-                    fontSize: 10,
-                    color: '#495057'
-                },
-                jobTitle: {
-                    fontSize: 12,
-                    bold: true,
-                    color: '#212529'
-                },
-                jobCompany: {
-                    fontSize: 11,
-                    bold: true,
-                    color: '#495057'
-                },
-                jobLocation: {
-                    fontSize: 9,
-                    color: '#868e96',
-                    italics: true
-                },
-                jobDate: {
-                    fontSize: 9,
-                    color: '#495057',
-                    bold: true
-                },
-                jobMeta: {
-                    fontSize: 9,
-                    color: '#868e96'
-                },
-                badge: {
-                    fontSize: 8,
-                    color: '#ffffff',
-                    background: '#6c757d',
-                    bold: true,
-                    padding: [4, 2],
-                    borderRadius: 2
-                },
-                badgeSuccess: {
-                    fontSize: 8,
-                    color: '#ffffff',
-                    background: '#198754',
-                    bold: true,
-                    padding: [4, 2],
-                    borderRadius: 2
-                },
-                tableHeader: {
-                    bold: true,
-                    fontSize: 8,
-                    color: '#868e96',
-                    margin: [0, 0, 0, 5]
-                }
+                sectionTitle: { fontSize: 9.5, bold: true, color: PRIMARY }
             },
             defaultStyle: {
                 font: 'Helvetica',
-                fontSize: 10,
-                lineHeight: 1.4
+                fontSize: 9.5,
+                lineHeight: 1.4,
+                color: TEXT_MAIN
             },
             pageMargins: [40, 40, 40, 40]
         };

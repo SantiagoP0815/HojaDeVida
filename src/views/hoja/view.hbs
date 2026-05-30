@@ -1,167 +1,84 @@
 <style>
+    :root {
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --primary-light: #eff6ff;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+        --bg: #f1f5f9;
+    }
+
     body {
-        background: url('/img/IGLESIA.jpg') no-repeat center center fixed;
-        background-size: cover;
+        background-color: var(--bg) !important;
         font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     }
 
     .view-container {
-        max-width: 1000px;
+        max-width: 960px;
         margin: 30px auto;
-        background: rgba(255, 255, 255, 0.95);
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-        border-radius: 8px;
+        background: #ffffff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06);
+        border-radius: 12px;
         overflow: hidden;
-        backdrop-filter: blur(5px);
     }
 
+    /* HEADER */
     .view-header {
-        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
         color: white;
         padding: 40px;
-        position: relative;
     }
 
     .view-header h1 {
         font-weight: 700;
-        margin-bottom: 10px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .view-header .subtitle {
-        font-size: 1.1rem;
-        opacity: 0.9;
-    }
-
-    .section-title {
-        color: #0d6efd;
-        font-weight: 700;
-        border-bottom: 2px solid #e9ecef;
-        padding-bottom: 10px;
-        margin-bottom: 25px;
-        margin-top: 40px;
-        text-transform: uppercase;
-        font-size: 1.1rem;
-        letter-spacing: 0.5px;
-    }
-
-    .info-label {
-        font-size: 0.85rem;
-        color: #6c757d;
-        text-transform: uppercase;
-        font-weight: 600;
+        font-size: 1.75rem;
         margin-bottom: 4px;
+        letter-spacing: 0.3px;
     }
 
-    .info-value {
+    .view-header .header-cargo {
         font-size: 1rem;
-        color: #212529;
-        font-weight: 500;
-        margin-bottom: 15px;
+        opacity: 0.85;
+        margin-bottom: 14px;
     }
 
-    .info-value.empty {
-        color: #adb5bd;
-        font-style: italic;
+    .view-header .contact-info span {
+        font-size: 0.875rem;
+        opacity: 0.9;
+        margin-right: 18px;
+        display: inline-block;
     }
 
-    .card-custom {
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .card-custom:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    }
-
-    .timeline-item {
-        position: relative;
-        padding-left: 30px;
-        margin-bottom: 25px;
-        border-left: 2px solid #e9ecef;
-    }
-
-    .timeline-item::before {
-        content: '';
-        position: absolute;
-        left: -6px;
-        top: 0;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: #0d6efd;
-    }
-
-    .timeline-date {
-        font-size: 0.9rem;
-        color: #6c757d;
-        margin-bottom: 5px;
-    }
-
-    .timeline-title {
-        font-weight: 700;
-        font-size: 1.1rem;
-        color: #212529;
-    }
-
-    .timeline-subtitle {
-        color: #0d6efd;
-        font-weight: 600;
-        margin-bottom: 10px;
-    }
-
-    .badge-custom {
-        background-color: #e7f1ff;
-        color: #0d6efd;
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
-
-    .download-link {
-        text-decoration: none;
-        color: #0d6efd;
-        font-weight: 500;
-        font-size: 0.9rem;
-        display: inline-flex;
-        align-items: center;
-        transition: color 0.2s;
-    }
-
-    .download-link:hover {
-        color: #0a58ca;
-        text-decoration: underline;
-    }
-
-    .table-custom th {
-        background-color: #f8f9fa;
-        font-weight: 600;
-        text-transform: uppercase;
-        font-size: 0.85rem;
-        color: #495057;
-    }
-
-    .fab-container {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        z-index: 1000;
+    .view-header .doc-info {
+        font-size: 0.78rem;
+        opacity: 0.6;
+        margin-top: 10px;
     }
 
     .profile-photo {
-        width: 120px;
-        height: 120px;
+        width: 110px;
+        height: 110px;
         border-radius: 50%;
         object-fit: cover;
-        border: 4px solid rgba(255, 255, 255, 0.3);
-        margin-right: 25px;
-        background-color: #fff;
+        border: 3px solid rgba(255,255,255,0.4);
+        margin-right: 28px;
+        flex-shrink: 0;
+    }
+
+    .profile-photo-placeholder {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.15);
+        border: 3px solid rgba(255,255,255,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 28px;
+        flex-shrink: 0;
+        font-size: 2.5rem;
+        color: rgba(255,255,255,0.6);
     }
 
     .header-content {
@@ -169,200 +86,480 @@
         align-items: center;
     }
 
+    /* PERFIL PROFESIONAL BANNER */
+    .perfil-banner {
+        background: var(--primary-light);
+        border-left: 4px solid var(--primary);
+        padding: 18px 24px;
+        margin: 28px 40px 0 40px;
+        border-radius: 0 8px 8px 0;
+        font-size: 0.95rem;
+        color: var(--text-main);
+        line-height: 1.6;
+    }
+
+    /* BODY */
+    .view-body {
+        padding: 32px 40px 40px;
+    }
+
+    /* SECTION TITLE */
+    .section-title {
+        color: var(--primary);
+        font-weight: 700;
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 8px;
+        margin-bottom: 22px;
+        margin-top: 36px;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .section-title:first-child {
+        margin-top: 0;
+    }
+
+    /* INFO FIELDS */
+    .info-block {
+        margin-bottom: 16px;
+    }
+
+    .info-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 3px;
+        letter-spacing: 0.5px;
+    }
+
+    .info-value {
+        font-size: 0.95rem;
+        color: var(--text-main);
+        font-weight: 500;
+    }
+
+    /* HABILIDADES */
+    .skill-badge {
+        display: inline-block;
+        background: var(--primary-light);
+        color: var(--primary);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        margin: 4px 4px 4px 0;
+        border: 1px solid #bfdbfe;
+    }
+
+    /* TIMELINE */
+    .timeline-item {
+        position: relative;
+        padding-left: 28px;
+        margin-bottom: 28px;
+        border-left: 2px solid var(--border);
+    }
+
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -5px;
+        top: 4px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--primary);
+    }
+
+    .timeline-date {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+
+    .timeline-title {
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--text-main);
+        margin-bottom: 2px;
+    }
+
+    .timeline-subtitle {
+        color: var(--primary);
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+    }
+
+    /* BADGE */
+    .badge-custom {
+        background-color: var(--primary-light);
+        color: var(--primary);
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        border: 1px solid #bfdbfe;
+    }
+
+    /* IDIOMA CARD */
+    .idioma-card {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        background: #fafafa;
+    }
+
+    .idioma-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        padding: 3px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .idioma-row:last-child {
+        border-bottom: none;
+    }
+
+    .idioma-row strong {
+        color: var(--text-main);
+    }
+
+    /* EMPLEO ACTUAL CARD */
+    .empleo-actual-card {
+        border: 1px solid #bfdbfe;
+        border-radius: 10px;
+        padding: 24px;
+        background: var(--primary-light);
+        margin-bottom: 24px;
+    }
+
+    /* STAT CARDS */
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 8px;
+    }
+
+    .stat-card {
+        background: #fafafa;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 18px 16px;
+        text-align: center;
+    }
+
+    .stat-card.total {
+        background: var(--primary-light);
+        border-color: #bfdbfe;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+
+    .stat-card.total .stat-label {
+        color: var(--primary);
+    }
+
+    .stat-card .stat-value {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    .stat-card.total .stat-value {
+        color: var(--primary);
+    }
+
+    .stat-card .stat-unit {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+    }
+
+    /* DOCUMENT CARD */
+    .doc-card {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #fafafa;
+    }
+
+    .download-link {
+        text-decoration: none;
+        color: var(--primary);
+        font-weight: 500;
+        font-size: 0.88rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: color 0.2s;
+    }
+
+    .download-link:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
+    }
+
+    /* FAB */
+    .fab-container {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 1000;
+    }
+
+    /* EDUCACION BASICA */
+    .edu-basica-card {
+        background: #fafafa;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    /* RESPONSIVE */
     @media (max-width: 768px) {
         .header-content {
             flex-direction: column;
             text-align: center;
         }
 
-        .profile-photo {
+        .profile-photo,
+        .profile-photo-placeholder {
             margin-right: 0;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
+        }
+
+        .view-header,
+        .view-body {
+            padding: 24px 20px;
+        }
+
+        .perfil-banner {
+            margin: 20px 20px 0;
+        }
+
+        .stat-grid {
+            grid-template-columns: 1fr;
         }
     }
 
     @media print {
-        .no-print {
-            display: none !important;
-        }
+        .no-print { display: none !important; }
+
+        body { background: white !important; }
 
         .view-container {
             box-shadow: none;
             margin: 0;
-            width: 100%;
             max-width: none;
+            border-radius: 0;
         }
 
-        body {
-            background: white;
+        .view-header {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
         }
     }
 </style>
 
 <div class="view-container">
-    <!-- Header -->
+
+    <!-- HEADER -->
     <div class="view-header">
-        <div class="row align-items-center">
-            <div class="col-md-9">
-                <div class="header-content">
-                    {{#if persona.foto_perfil}}
-                    <img src="/docs/{{persona.foto_perfil}}" alt="Foto de Perfil" class="profile-photo">
-                    {{else}}
-                    <div class="profile-photo d-flex align-items-center justify-content-center text-secondary fs-1">
-                        <i class="fas fa-user"></i>
-                    </div>
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div class="header-content">
+                {{#if persona.foto_perfil}}
+                <img src="/docs/{{persona.foto_perfil}}" alt="Foto de Perfil" class="profile-photo">
+                {{else}}
+                <div class="profile-photo-placeholder">
+                    <i class="fas fa-user"></i>
+                </div>
+                {{/if}}
+                <div>
+                    <h1>{{persona.nombres}} {{persona.primer_apellido}} {{persona.segundo_apellido}}</h1>
+                    {{#if empleoActual}}
+                    <div class="header-cargo">{{empleoActual.cargo_actual}} &mdash; {{empleoActual.empresa_entidad}}</div>
                     {{/if}}
-                    <div>
-                        <h1>{{persona.nombres}} {{persona.primer_apellido}} {{persona.segundo_apellido}}</h1>
-                        <div class="subtitle">
-                            <i class="fas fa-id-card me-2"></i> {{persona.tipo_documento}} {{persona.numero_documento}}
-                        </div>
-                        <div class="mt-3">
-                            <span class="me-3"><i class="fas fa-envelope me-1"></i> {{persona.email}}</span>
-                            <span><i class="fas fa-phone me-1"></i> {{persona.telefono}}</span>
-                        </div>
+                    <div class="contact-info">
+                        {{#if persona.email}}
+                        <span><i class="fas fa-envelope me-1"></i> {{persona.email}}</span>
+                        {{/if}}
+                        {{#if persona.telefono}}
+                        <span><i class="fas fa-phone me-1"></i> {{persona.telefono}}</span>
+                        {{/if}}
+                        {{#if persona.municipio_correspondencia}}
+                        <span><i class="fas fa-map-marker-alt me-1"></i> {{persona.municipio_correspondencia}}, {{persona.departamento_correspondencia}}</span>
+                        {{/if}}
+                    </div>
+                    <div class="doc-info">
+                        <i class="fas fa-id-card me-1"></i> {{persona.tipo_documento}} {{persona.numero_documento}}
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 text-md-end mt-3 mt-md-0 no-print">
-                <a href="/hoja/generar-pdf/{{persona.unique_identifier}}" class="btn btn-light shadow-sm fw-bold">
+            <div class="no-print pt-1">
+                <a href="/hoja/generar-pdf/{{persona.unique_identifier}}" class="btn btn-light btn-sm shadow-sm fw-bold">
                     <i class="fas fa-file-pdf me-2"></i> Descargar PDF
                 </a>
             </div>
         </div>
     </div>
 
-    <div class="p-4 p-md-5">
+    <!-- PERFIL PROFESIONAL -->
+    {{#if persona.perfil_profesional}}
+    <div class="perfil-banner">
+        <strong class="d-block mb-1" style="font-size:0.78rem; text-transform:uppercase; letter-spacing:1px; color:var(--primary);">
+            <i class="fas fa-quote-left me-1"></i> Perfil Profesional
+        </strong>
+        {{persona.perfil_profesional}}
+    </div>
+    {{/if}}
+
+    <div class="view-body">
+
+        <!-- HABILIDADES -->
+        {{#if persona.habilidades}}
+        <h2 class="section-title"><i class="fas fa-star"></i> Habilidades</h2>
+        <div class="mb-2">
+            {{#each (splitStr persona.habilidades ",")}}
+            <span class="skill-badge">{{this}}</span>
+            {{/each}}
+        </div>
+        {{/if}}
 
         <!-- 1. DATOS PERSONALES -->
-        <h2 class="section-title"><i class="fas fa-user-circle me-2"></i> Datos Personales</h2>
-        <div class="row g-4">
+        <h2 class="section-title"><i class="fas fa-user-circle"></i> Datos Personales</h2>
+        <div class="row g-3">
+            {{#if persona.nacionalidad}}
             <div class="col-md-3">
-                <div class="info-label">Nacionalidad</div>
-                <div class="info-value">
-                    {{#if (eq persona.nacionalidad "COLOMBIANO")}}
-                    Colombiano
-                    {{else}}
-                    {{#if (eq persona.nacionalidad "EXTRANJERO")}}
-                    Extranjero {{#if persona.pais}}({{persona.pais}}){{/if}}
-                    {{else}}
-                    <span class="info-value empty">No especificado</span>
-                    {{/if}}
-                    {{/if}}
+                <div class="info-block">
+                    <div class="info-label">Nacionalidad</div>
+                    <div class="info-value">
+                        {{#if (eq persona.nacionalidad "COLOMBIANO")}}Colombiano{{else}}Extranjero {{#if persona.pais}}({{persona.pais}}){{/if}}{{/if}}
+                    </div>
                 </div>
             </div>
+            {{/if}}
+            {{#if persona.sexo}}
             <div class="col-md-3">
-                <div class="info-label">Sexo</div>
-                <div class="info-value">
-                    {{#if (eq persona.sexo "M")}}Masculino{{/if}}
-                    {{#if (eq persona.sexo "F")}}Femenino{{/if}}
-                    {{#unless persona.sexo}}<span class="info-value empty">No especificado</span>{{/unless}}
+                <div class="info-block">
+                    <div class="info-label">Sexo</div>
+                    <div class="info-value">{{#if (eq persona.sexo "M")}}Masculino{{else}}Femenino{{/if}}</div>
                 </div>
             </div>
+            {{/if}}
+            {{#if persona.fecha_nacimiento}}
             <div class="col-md-3">
-                <div class="info-label">Fecha de Nacimiento</div>
-                <div class="info-value">{{#if persona.fecha_nacimiento}}{{formatFullDate
-                    persona.fecha_nacimiento}}{{else}}<span class="info-value empty">--/--/----</span>{{/if}}</div>
-            </div>
-            <div class="col-md-3">
-                <div class="info-label">Lugar de Nacimiento</div>
-                <div class="info-value">
-                    {{#if persona.municipio_nacimiento}}
-                    {{persona.municipio_nacimiento}}, {{persona.departamento_nacimiento}}
-                    {{#if persona.pais_nacimiento}}({{persona.pais_nacimiento}}){{/if}}
-                    {{else}}
-                    <span class="info-value empty">No especificado</span>
-                    {{/if}}
+                <div class="info-block">
+                    <div class="info-label">Fecha de Nacimiento</div>
+                    <div class="info-value">{{formatFullDate persona.fecha_nacimiento}}</div>
                 </div>
             </div>
-
-            <!-- Libreta Militar -->
-            {{#if persona.tipo_libreta_militar}}
+            {{/if}}
+            {{#if persona.municipio_nacimiento}}
             <div class="col-md-3">
-                <div class="info-label">Libreta Militar</div>
-                <div class="info-value">{{persona.tipo_libreta_militar}}</div>
+                <div class="info-block">
+                    <div class="info-label">Lugar de Nacimiento</div>
+                    <div class="info-value">
+                        {{persona.municipio_nacimiento}}, {{persona.departamento_nacimiento}}
+                    </div>
+                </div>
             </div>
-            <div class="col-md-3">
-                <div class="info-label">Número Libreta</div>
-                <div class="info-value">{{persona.numero_libreta_militar}}</div>
-            </div>
-            <div class="col-md-3">
-                <div class="info-label">Distrito Militar</div>
-                <div class="info-value">{{persona.dm_libreta_militar}}</div>
-            </div>
-            <div class="col-md-3"></div> <!-- Spacer -->
             {{/if}}
 
-            <!-- Dirección -->
-            <div class="col-12">
-                <div class="info-label">Dirección de Correspondencia</div>
-                <div class="info-value">
-                    {{#if persona.direccion_correspondencia}}
-                    {{persona.direccion_correspondencia}}
-                    <br>
-                    <small class="text-muted">
-                        {{persona.municipio_correspondencia}}, {{persona.departamento_correspondencia}}{{#if
-                        persona.pais_correspondencia}}, {{persona.pais_correspondencia}}{{/if}}
-                    </small>
-                    {{else}}
-                    <span class="info-value empty">No registrada</span>
-                    {{/if}}
+            {{#if persona.tipo_libreta_militar}}
+            <div class="col-md-3">
+                <div class="info-block">
+                    <div class="info-label">Libreta Militar</div>
+                    <div class="info-value">{{persona.tipo_libreta_militar}}</div>
                 </div>
             </div>
+            <div class="col-md-3">
+                <div class="info-block">
+                    <div class="info-label">Número Libreta</div>
+                    <div class="info-value">{{persona.numero_libreta_militar}}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="info-block">
+                    <div class="info-label">Distrito Militar</div>
+                    <div class="info-value">{{persona.dm_libreta_militar}}</div>
+                </div>
+            </div>
+            {{/if}}
+
+            {{#if persona.direccion_correspondencia}}
+            <div class="col-12">
+                <div class="info-block">
+                    <div class="info-label">Dirección de Correspondencia</div>
+                    <div class="info-value">
+                        {{persona.direccion_correspondencia}}
+                        <span class="text-muted" style="font-size:0.85rem; font-weight:400;">
+                            &nbsp;&mdash; {{persona.municipio_correspondencia}}, {{persona.departamento_correspondencia}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {{/if}}
         </div>
 
         <!-- 2. FORMACIÓN ACADÉMICA -->
-        <h2 class="section-title"><i class="fas fa-graduation-cap me-2"></i> Formación Académica</h2>
+        <h2 class="section-title"><i class="fas fa-graduation-cap"></i> Formación Académica</h2>
 
-        <!-- Básica y Media -->
-        <div class="card-custom bg-light border-0">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h5 class="fw-bold mb-1">Educación Básica y Media</h5>
-                    <p class="mb-0 text-muted">{{#if
-                        educacion_basica_media.titulo_obtenido}}{{educacion_basica_media.titulo_obtenido}}{{else}}Título
-                        no registrado{{/if}}</p>
-                </div>
-                <div class="col-md-4 text-md-end mt-2 mt-md-0">
-                    {{#if educacion_basica_media.educacion_basica}}
-                    <span class="badge bg-secondary">Grado {{educacion_basica_media.educacion_basica}}°</span>
-                    {{/if}}
-                    {{#if educacion_basica_media.fecha_grado}}
-                    <div class="small text-muted mt-1">Grado: {{formatDate educacion_basica_media.fecha_grado}}</div>
-                    {{/if}}
-                </div>
+        {{#if educacion_basica_media.titulo_obtenido}}
+        <div class="edu-basica-card">
+            <div>
+                <div style="font-weight:700; font-size:0.95rem;">Educación Básica y Media</div>
+                <div style="color:var(--text-muted); font-size:0.875rem;">{{educacion_basica_media.titulo_obtenido}}</div>
+            </div>
+            <div class="text-end">
+                {{#if educacion_basica_media.educacion_basica}}
+                <span class="badge bg-secondary">Grado {{educacion_basica_media.educacion_basica}}°</span>
+                {{/if}}
+                {{#if educacion_basica_media.fecha_grado}}
+                <div style="font-size:0.78rem; color:var(--text-muted); margin-top:4px;">{{formatDate educacion_basica_media.fecha_grado}}</div>
+                {{/if}}
             </div>
         </div>
+        {{/if}}
 
-        <!-- Educación Superior -->
         {{#if educacion_superior.length}}
-        <h5 class="mb-3 text-secondary fw-bold small">EDUCACIÓN SUPERIOR</h5>
+        <div class="mb-2" style="font-size:0.75rem; font-weight:700; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:12px;">Educación Superior</div>
         {{#each educacion_superior}}
         <div class="timeline-item">
             <div class="timeline-date">{{formatDate this.mes_terminacion}}</div>
             <div class="timeline-title">{{this.nombre_titulo}}</div>
             <div class="timeline-subtitle">{{this.modalidad_academica}}</div>
-
-            <div class="row g-2 mt-1">
-                <div class="col-auto">
-                    <span class="badge-custom">
-                        {{#if (eq this.graduado "SI")}}Graduado{{else}}En Curso{{/if}}
-                    </span>
-                </div>
-                <div class="col-auto">
-                    <span class="badge-custom">{{this.semestres_aprobados}} Semestres</span>
-                </div>
-                {{#if this.numero_tarjeta_profesional}}
-                <div class="col-auto">
-                    <span class="badge-custom">T.P: {{this.numero_tarjeta_profesional}}</span>
-                </div>
-                {{/if}}
+            <div class="d-flex gap-2 flex-wrap mt-1">
+                <span class="badge-custom">{{#if (eq this.graduado "SI")}}Graduado{{else}}En Curso{{/if}}</span>
+                {{#if this.semestres_aprobados}}<span class="badge-custom">{{this.semestres_aprobados}} Semestres</span>{{/if}}
+                {{#if this.numero_tarjeta_profesional}}<span class="badge-custom">T.P: {{this.numero_tarjeta_profesional}}</span>{{/if}}
             </div>
-
             {{#if this.documento}}
             <div class="mt-2">
                 <a href="/hoja/soporte/educacion/{{this.id_educacion_superior}}" target="_blank" class="download-link">
-                    <i class="fas fa-paperclip me-1"></i> Ver Soporte
+                    <i class="fas fa-paperclip"></i> Ver Soporte
                 </a>
             </div>
             {{/if}}
@@ -370,23 +567,16 @@
         {{/each}}
         {{/if}}
 
-        <!-- Idiomas -->
         {{#if idiomas.length}}
-        <h5 class="mb-3 mt-4 text-secondary fw-bold small">IDIOMAS</h5>
-        <div class="row g-3">
+        <div class="mb-3 mt-4" style="font-size:0.75rem; font-weight:700; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase;">Idiomas</div>
+        <div class="row g-3 mb-2">
             {{#each idiomas}}
             <div class="col-md-4">
-                <div class="card-custom p-3 mb-0">
-                    <h6 class="fw-bold mb-2">{{this.idioma}}</h6>
-                    <div class="d-flex justify-content-between small text-muted border-bottom pb-1 mb-1">
-                        <span>Habla</span> <strong>{{this.lo_habla}}</strong>
-                    </div>
-                    <div class="d-flex justify-content-between small text-muted border-bottom pb-1 mb-1">
-                        <span>Lee</span> <strong>{{this.lo_lee}}</strong>
-                    </div>
-                    <div class="d-flex justify-content-between small text-muted">
-                        <span>Escribe</span> <strong>{{this.lo_escribe}}</strong>
-                    </div>
+                <div class="idioma-card">
+                    <div style="font-weight:700; font-size:0.9rem; margin-bottom:10px; color:var(--text-main);">{{this.idioma}}</div>
+                    <div class="idioma-row"><span>Habla</span><strong>{{this.lo_habla}}</strong></div>
+                    <div class="idioma-row"><span>Lee</span><strong>{{this.lo_lee}}</strong></div>
+                    <div class="idioma-row"><span>Escribe</span><strong>{{this.lo_escribe}}</strong></div>
                 </div>
             </div>
             {{/each}}
@@ -394,105 +584,88 @@
         {{/if}}
 
         <!-- 3. EXPERIENCIA LABORAL -->
-        <h2 class="section-title"><i class="fas fa-briefcase me-2"></i> Experiencia Laboral</h2>
+        <h2 class="section-title"><i class="fas fa-briefcase"></i> Experiencia Laboral</h2>
 
         {{#if empleoActual}}
-        <div class="card-custom border-primary border-opacity-25 bg-white shadow-sm">
-            <div class="d-flex justify-content-between align-items-start">
+        <div class="empleo-actual-card">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                 <div>
-                    <span class="badge bg-success mb-2">EMPLEO ACTUAL</span>
-                    <h4 class="fw-bold mb-1">{{empleoActual.cargo_actual}}</h4>
-                    <h5 class="text-primary mb-2">{{empleoActual.empresa_entidad}}</h5>
+                    <span class="badge bg-success mb-2" style="font-size:0.72rem;">EMPLEO ACTUAL</span>
+                    <div style="font-size:1.1rem; font-weight:700; color:var(--text-main);">{{empleoActual.cargo_actual}}</div>
+                    <div style="font-size:1rem; font-weight:600; color:var(--primary); margin-bottom:12px;">{{empleoActual.empresa_entidad}}</div>
                 </div>
-                <div class="text-end">
-                    <span class="badge bg-light text-dark border">{{empleoActual.tipo}}</span>
-                </div>
+                <span class="badge bg-white text-dark border" style="font-size:0.78rem;">{{empleoActual.tipo}}</span>
             </div>
-
-            <div class="row g-3 mt-2">
+            <div class="row g-3">
                 <div class="col-md-4">
                     <div class="info-label">Fecha Ingreso</div>
-                    <div class="fw-bold">{{formatFullDate empleoActual.fecha_ingreso}}</div>
+                    <div style="font-weight:600; font-size:0.9rem;">{{formatFullDate empleoActual.fecha_ingreso}}</div>
                 </div>
                 {{#if empleoActual.fecha_retiro}}
                 <div class="col-md-4">
                     <div class="info-label">Fecha Retiro</div>
-                    <div class="fw-bold">{{formatFullDate empleoActual.fecha_retiro}}</div>
+                    <div style="font-weight:600; font-size:0.9rem;">{{formatFullDate empleoActual.fecha_retiro}}</div>
                 </div>
                 {{/if}}
+                {{#if empleoActual.municipio}}
                 <div class="col-md-4">
                     <div class="info-label">Ubicación</div>
-                    <div>{{empleoActual.municipio}}, {{empleoActual.departamento}}</div>
-                    <small class="text-muted">{{empleoActual.pais}}</small>
+                    <div style="font-size:0.9rem;">{{empleoActual.municipio}}, {{empleoActual.departamento}}</div>
                 </div>
-
-                <div class="col-md-6">
-                    <div class="info-label">Contacto Entidad</div>
-                    <div><i class="fas fa-envelope me-1 text-muted"></i> {{empleoActual.correo_entidad}}</div>
-                    <div><i class="fas fa-phone me-1 text-muted"></i> {{empleoActual.telefono_entidad}}</div>
-                </div>
+                {{/if}}
+                {{#if empleoActual.dependencia}}
                 <div class="col-md-6">
                     <div class="info-label">Dependencia</div>
-                    <div>{{empleoActual.dependencia}}</div>
+                    <div style="font-size:0.9rem;">{{empleoActual.dependencia}}</div>
                 </div>
-                <div class="col-12">
-                    <div class="info-label">Dirección</div>
-                    <div>{{empleoActual.direccion}}</div>
+                {{/if}}
+                {{#if empleoActual.correo_entidad}}
+                <div class="col-md-6">
+                    <div class="info-label">Contacto Entidad</div>
+                    <div style="font-size:0.875rem;"><i class="fas fa-envelope me-1 text-muted"></i> {{empleoActual.correo_entidad}}</div>
+                    {{#if empleoActual.telefono_entidad}}<div style="font-size:0.875rem;"><i class="fas fa-phone me-1 text-muted"></i> {{empleoActual.telefono_entidad}}</div>{{/if}}
                 </div>
+                {{/if}}
             </div>
-
             {{#if empleoActual.documento}}
-            <div class="mt-3 pt-2 border-top">
-                <a href="/hoja/soporte/experiencia/{{empleoActual.id_experiencia}}" target="_blank"
-                    class="download-link">
-                    <i class="fas fa-paperclip me-1"></i> Ver Certificado Laboral
+            <div class="mt-3 pt-3 border-top" style="border-color:var(--border)!important;">
+                <a href="/hoja/soporte/experiencia/{{empleoActual.id_experiencia}}" target="_blank" class="download-link">
+                    <i class="fas fa-paperclip"></i> Ver Certificado Laboral
                 </a>
             </div>
             {{/if}}
         </div>
         {{/if}}
 
-        <!-- Empleos Anteriores -->
         {{#if empleosAnteriores.length}}
-        <h5 class="mb-3 mt-4 text-secondary fw-bold small">HISTORIAL LABORAL</h5>
+        <div class="mb-3" style="font-size:0.75rem; font-weight:700; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase;">Historial Laboral</div>
         {{#each empleosAnteriores}}
         <div class="timeline-item">
             <div class="timeline-date">
-                {{formatFullDate this.fecha_ingreso}} - {{#if this.fecha_retiro}}{{formatFullDate
-                this.fecha_retiro}}{{else}}Presente{{/if}}
+                {{formatFullDate this.fecha_ingreso}} &mdash; {{#if this.fecha_retiro}}{{formatFullDate this.fecha_retiro}}{{else}}Presente{{/if}}
             </div>
             <div class="timeline-title">{{this.cargo_actual}}</div>
-            <div class="timeline-subtitle">{{this.empresa_entidad}} <span
-                    class="badge bg-light text-dark border ms-2">{{this.tipo}}</span></div>
-
-            <div class="mb-2">
-                <small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i> {{this.municipio}},
-                    {{this.departamento}}</small>
+            <div class="timeline-subtitle">{{this.empresa_entidad}} <span class="badge bg-light text-dark border ms-1" style="font-size:0.72rem;">{{this.tipo}}</span></div>
+            {{#if this.municipio}}
+            <div style="font-size:0.82rem; color:var(--text-muted); margin-bottom:6px;">
+                <i class="fas fa-map-marker-alt me-1"></i> {{this.municipio}}, {{this.departamento}}
             </div>
-
-            <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-bs-toggle="collapse"
-                data-bs-target="#detallesEmpleo{{this.id_experiencia}}">
-                Ver más detalles <i class="fas fa-chevron-down ms-1"></i>
+            {{/if}}
+            <button class="btn btn-sm btn-link p-0 text-decoration-none" style="font-size:0.82rem; color:var(--primary);"
+                type="button" data-bs-toggle="collapse" data-bs-target="#detallesEmpleo{{this.id_experiencia}}">
+                Ver detalles <i class="fas fa-chevron-down ms-1"></i>
             </button>
-
             <div class="collapse mt-2" id="detallesEmpleo{{this.id_experiencia}}">
-                <div class="card card-body bg-light border-0 p-3 small">
+                <div class="p-3 rounded" style="background:#f8fafc; border:1px solid var(--border); font-size:0.875rem;">
                     <div class="row g-2">
-                        <div class="col-md-6">
-                            <strong>Dependencia:</strong> {{this.dependencia}}
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Contacto:</strong> {{this.correo_entidad}}
-                        </div>
-                        <div class="col-12">
-                            <strong>Dirección:</strong> {{this.direccion}}
-                        </div>
+                        {{#if this.dependencia}}<div class="col-md-6"><strong>Dependencia:</strong> {{this.dependencia}}</div>{{/if}}
+                        {{#if this.correo_entidad}}<div class="col-md-6"><strong>Contacto:</strong> {{this.correo_entidad}}</div>{{/if}}
+                        {{#if this.direccion}}<div class="col-12"><strong>Dirección:</strong> {{this.direccion}}</div>{{/if}}
                     </div>
                     {{#if this.documento}}
                     <div class="mt-2 pt-2 border-top">
-                        <a href="/hoja/soporte/experiencia/{{this.id_experiencia}}" target="_blank"
-                            class="download-link">
-                            <i class="fas fa-paperclip me-1"></i> Ver Soporte
+                        <a href="/hoja/soporte/experiencia/{{this.id_experiencia}}" target="_blank" class="download-link">
+                            <i class="fas fa-paperclip"></i> Ver Soporte
                         </a>
                     </div>
                     {{/if}}
@@ -502,54 +675,47 @@
         {{/each}}
         {{/if}}
 
-        <!-- 4. TIEMPO TOTAL -->
-        <h2 class="section-title"><i class="fas fa-clock me-2"></i> Tiempo Total de Experiencia</h2>
-        <div class="table-responsive">
-            <table class="table table-bordered table-custom">
-                <thead>
-                    <tr>
-                        <th>Ocupación</th>
-                        <th class="text-center" style="width: 100px;">Años</th>
-                        <th class="text-center" style="width: 100px;">Meses</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Servidor Público</td>
-                        <td class="text-center">{{tiempo_experiencia.anios_servidor_publico}}</td>
-                        <td class="text-center">{{tiempo_experiencia.meses_servidor_publico}}</td>
-                    </tr>
-                    <tr>
-                        <td>Sector Privado</td>
-                        <td class="text-center">{{tiempo_experiencia.anios_sector_privado}}</td>
-                        <td class="text-center">{{tiempo_experiencia.meses_sector_privado}}</td>
-                    </tr>
-                    <tr>
-                        <td>Trabajador Independiente</td>
-                        <td class="text-center">{{tiempo_experiencia.anios_trabajador_independiente}}</td>
-                        <td class="text-center">{{tiempo_experiencia.meses_trabajador_independiente}}</td>
-                    </tr>
-                    <tr class="table-light fw-bold">
-                        <td>TOTAL</td>
-                        <td class="text-center">{{tiempo_experiencia.anios_total_experiencia}}</td>
-                        <td class="text-center">{{tiempo_experiencia.meses_total_experiencia}}</td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- 4. TIEMPO TOTAL DE EXPERIENCIA -->
+        <h2 class="section-title"><i class="fas fa-clock"></i> Tiempo Total de Experiencia</h2>
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-label">Servidor Público</div>
+                <div class="stat-value">{{tiempo_experiencia.anios_servidor_publico}}</div>
+                <div class="stat-unit">años &mdash; {{tiempo_experiencia.meses_servidor_publico}} meses</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Sector Privado</div>
+                <div class="stat-value">{{tiempo_experiencia.anios_sector_privado}}</div>
+                <div class="stat-unit">años &mdash; {{tiempo_experiencia.meses_sector_privado}} meses</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Trabajador Independiente</div>
+                <div class="stat-value">{{tiempo_experiencia.anios_trabajador_independiente}}</div>
+                <div class="stat-unit">años &mdash; {{tiempo_experiencia.meses_trabajador_independiente}} meses</div>
+            </div>
+        </div>
+        <div class="stat-grid mt-3">
+            <div></div>
+            <div class="stat-card total">
+                <div class="stat-label">Total Experiencia</div>
+                <div class="stat-value">{{tiempo_experiencia.anios_total_experiencia}}</div>
+                <div class="stat-unit">años &mdash; {{tiempo_experiencia.meses_total_experiencia}} meses</div>
+            </div>
+            <div></div>
         </div>
 
         <!-- 5. SOPORTES ADICIONALES -->
         {{#if documentos.length}}
-        <h2 class="section-title"><i class="fas fa-folder-open me-2"></i> Soportes Adicionales</h2>
+        <h2 class="section-title"><i class="fas fa-folder-open"></i> Soportes Adicionales</h2>
         <div class="row g-3">
             {{#each documentos}}
             <div class="col-md-6">
-                <div class="card-custom p-3 d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-file-alt text-primary fs-4 me-3"></i>
-                        <div class="text-truncate" style="max-width: 200px;" title="{{this.original_name}}">
+                <div class="doc-card">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-file-alt" style="color:var(--primary); font-size:1.2rem;"></i>
+                        <span class="text-truncate" style="max-width:200px; font-size:0.875rem;" title="{{this.original_name}}">
                             {{this.original_name}}
-                        </div>
+                        </span>
                     </div>
                     <a href="/hoja/documento/{{this.id_documento}}" target="_blank"
                         class="btn btn-sm btn-outline-primary">
@@ -564,7 +730,7 @@
     </div>
 </div>
 
-<!-- Floating Action Button for Mobile -->
+<!-- FAB Mobile -->
 <div class="fab-container d-md-none no-print">
     <a href="/hoja/generar-pdf/{{persona.unique_identifier}}" class="btn btn-primary rounded-circle shadow-lg p-3">
         <i class="fas fa-file-pdf fa-lg"></i>

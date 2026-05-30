@@ -175,17 +175,20 @@ Handlebars.registerHelper('formatFullDate', function (dateString) {
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return dateString;
 
-  // Adjust for timezone offset if necessary, but usually UTC dates from DB might show previous day if not handled.
-  // However, the user complained about "Fri Aug 15 2003...".
-  // Let's use UTC methods to avoid timezone shifts if the date is stored as YYYY-MM-DD 00:00:00 UTC.
-  // But usually simple .getDate() uses local time.
-  // If the server is in a different timezone, it might be an issue.
-  // For now, simple formatting.
-
   const day = date.getDate().toString().padStart(2, '0');
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
   const year = date.getFullYear();
 
   return `${day}/${month}/${year}`;
+});
+
+Handlebars.registerHelper('splitStr', function (str, separator) {
+  if (!str) return [];
+  return str.split(separator).map(s => s.trim()).filter(s => s.length > 0);
+});
+
+Handlebars.registerHelper('trim', function (str) {
+  if (!str) return '';
+  return str.trim();
 });
 
